@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 200" width="360" height="200" role="img" aria-label="Rasmga obyektlarni sanash tasviri">
+  <defs>
+    <linearGradient id="cCntBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#131A3D"/>
+      <stop offset="1" stop-color="#0A1526"/>
+    </linearGradient>
+    <radialGradient id="cCntGlow" cx="0.72" cy="0.35" r="0.6">
+      <stop offset="0" stop-color="#7C5CFF" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="360" height="200" rx="18" fill="url(#cCntBg)"/>
+  <rect width="360" height="200" rx="18" fill="url(#cCntGlow)"/>
+  <g stroke="#2B3A6B" stroke-width="1" opacity="0.6">
+    <path d="M0 50 h360 M0 100 h360 M0 150 h360 M60 0 v200 M120 0 v200 M180 0 v200 M240 0 v200 M300 0 v200"/>
+  </g>
+
+  <!-- brick stack -->
+  <g>
+    <g fill="#C46A4A" stroke="#A5533A" stroke-width="2">
+      <rect x="70" y="140" width="56" height="26" rx="3"/>
+      <rect x="132" y="140" width="56" height="26" rx="3"/>
+      <rect x="194" y="140" width="56" height="26" rx="3"/>
+      <rect x="101" y="110" width="56" height="26" rx="3"/>
+      <rect x="163" y="110" width="56" height="26" rx="3"/>
+      <rect x="132" y="80" width="56" height="26" rx="3"/>
+    </g>
+    <path d="M76 148 h44 M138 148 h44 M200 148 h44 M107 118 h44 M169 118 h44 M138 88 h44" stroke="#E08A6A" stroke-width="2" opacity="0.7"/>
+  </g>
+
+  <!-- detection boxes -->
+  <g fill="none" stroke="#29B6FF" stroke-width="2.5" stroke-dasharray="8 6">
+    <rect x="62" y="72" width="198" height="102" rx="8"/>
+    <rect x="93" y="72" width="72" height="66" rx="6"/>
+    <rect x="155" y="72" width="72" height="66" rx="6"/>
+  </g>
+  <g font-family="Inter, Arial, sans-serif" font-size="10" font-weight="700">
+    <rect x="62" y="56" width="52" height="16" rx="4" fill="#29B6FF"/>
+    <text x="88" y="68" fill="#061426" text-anchor="middle">G'isht</text>
+    <rect x="165" y="140" width="44" height="16" rx="4" fill="#22C99A"/>
+    <text x="187" y="152" fill="#061426" text-anchor="middle">0.98</text>
+  </g>
+
+  <!-- count badge -->
+  <g>
+    <circle cx="288" cy="72" r="34" fill="#0A1526" stroke="#7C5CFF" stroke-width="3"/>
+    <circle cx="288" cy="72" r="34" fill="#7C5CFF" opacity="0.18"/>
+    <text x="288" y="82" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="800" fill="#C9BCFF" text-anchor="middle">6</text>
+    <path d="M256 112 q32 14 64 0" stroke="#7C5CFF" stroke-width="2.5" fill="none"/>
+  </g>
+</svg>

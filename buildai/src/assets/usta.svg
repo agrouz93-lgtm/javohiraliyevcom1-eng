@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 520" width="460" height="520" role="img" aria-label="Oq kaskali, ko'k kiyimli usta personaji">
+  <defs>
+    <linearGradient id="uHat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D8E1EC"/>
+    </linearGradient>
+    <linearGradient id="uShirt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#29B6FF"/>
+      <stop offset="1" stop-color="#1677FF"/>
+    </linearGradient>
+    <linearGradient id="uOverall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1E88FF"/>
+      <stop offset="1" stop-color="#0F5FD6"/>
+    </linearGradient>
+    <radialGradient id="uRing" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.7" stop-color="#1677FF" stop-opacity="0"/>
+      <stop offset="1" stop-color="#1677FF" stop-opacity="0.35"/>
+    </radialGradient>
+    <filter id="uSoft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+
+  <!-- neon ring -->
+  <circle cx="230" cy="240" r="196" fill="url(#uRing)"/>
+  <circle cx="230" cy="240" r="196" fill="none" stroke="#1677FF" stroke-width="10" opacity="0.35" filter="url(#uSoft)"/>
+  <circle cx="230" cy="240" r="196" fill="none" stroke="#29B6FF" stroke-width="3" opacity="0.8"/>
+  <circle cx="230" cy="240" r="180" fill="none" stroke="#1677FF" stroke-width="1" opacity="0.4" stroke-dasharray="6 12"/>
+
+  <!-- sparkles -->
+  <g fill="#29B6FF">
+    <path d="M64 128 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6 z" opacity="0.9"/>
+    <path d="M396 96 l5 13 13 5 -13 5 -5 13 -5 -13 -13 -5 13 -5 z" opacity="0.7"/>
+    <path d="M408 348 l4 11 11 4 -11 4 -4 11 -4 -11 -11 -4 11 -4 z" opacity="0.55"/>
+  </g>
+
+  <!-- right arm (holding blueprints) -->
+  <path d="M292 322 C 324 336 346 354 352 380" stroke="url(#uShirt)" stroke-width="32" fill="none" stroke-linecap="round"/>
+  <g transform="rotate(-16 372 316)">
+    <rect x="352" y="238" width="34" height="156" rx="17" fill="#F1F6FC" stroke="#C7D6E8" stroke-width="2"/>
+    <rect x="352" y="286" width="34" height="14" fill="#1677FF"/>
+    <rect x="352" y="322" width="34" height="8" fill="#29B6FF" opacity="0.75"/>
+  </g>
+  <g transform="rotate(-4 340 322)">
+    <rect x="322" y="252" width="30" height="146" rx="15" fill="#E4EDF8" stroke="#C7D6E8" stroke-width="2"/>
+    <rect x="322" y="296" width="30" height="12" fill="#0F5FD6"/>
+  </g>
+  <circle cx="352" cy="388" r="20" fill="#F3C39B"/>
+
+  <!-- torso -->
+  <path d="M148 500 V374 c0-48 36-82 82-82 s82 34 82 82 v126 z" fill="url(#uShirt)"/>
+  <!-- overalls bib -->
+  <path d="M186 316 h88 v184 h-88 z" fill="url(#uOverall)"/>
+  <rect x="196" y="292" width="20" height="46" rx="9" fill="#0F5FD6"/>
+  <rect x="244" y="292" width="20" height="46" rx="9" fill="#0F5FD6"/>
+  <path d="M212 296 L230 320 L248 296" fill="none" stroke="#0B4CB8" stroke-width="6" stroke-linecap="round"/>
+  <rect x="186" y="372" width="88" height="11" fill="#F5F8FF" opacity="0.85"/>
+  <rect x="186" y="432" width="88" height="9" fill="#F5F8FF" opacity="0.5"/>
+  <rect x="240" y="336" width="36" height="30" rx="7" fill="#0F5FD6" stroke="#29B6FF" stroke-width="2"/>
+  <path d="M246 344 h24 M246 352 h24 M246 360 h16" stroke="#29B6FF" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- left arm: thumbs up -->
+  <path d="M174 322 C 140 338 118 356 120 380 L 114 306" stroke="url(#uShirt)" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="90" y="256" width="46" height="48" rx="20" fill="#F3C39B"/>
+  <rect x="104" y="222" width="18" height="42" rx="9" fill="#F3C39B"/>
+  <path d="M96 274 h34" stroke="#E0A97E" stroke-width="4" stroke-linecap="round"/>
+  <path d="M96 286 h30" stroke="#E0A97E" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- neck -->
+  <rect x="212" y="252" width="36" height="52" rx="16" fill="#E8B48C"/>
+
+  <!-- ears -->
+  <circle cx="172" cy="214" r="13" fill="#F3C39B"/>
+  <circle cx="288" cy="214" r="13" fill="#F3C39B"/>
+
+  <!-- face -->
+  <ellipse cx="230" cy="206" rx="60" ry="64" fill="#F3C39B"/>
+  <ellipse cx="200" cy="234" rx="11" ry="7" fill="#EE9C9C" opacity="0.55"/>
+  <ellipse cx="260" cy="234" rx="11" ry="7" fill="#EE9C9C" opacity="0.55"/>
+  <path d="M196 190 q12 -9 24 -3 M240 187 q12 -6 24 3" stroke="#33465F" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="209" cy="210" rx="6.5" ry="8.5" fill="#22344C"/>
+  <ellipse cx="251" cy="210" rx="6.5" ry="8.5" fill="#22344C"/>
+  <circle cx="211" cy="207" r="2" fill="#FFFFFF"/>
+  <circle cx="253" cy="207" r="2" fill="#FFFFFF"/>
+  <path d="M204 232 q26 28 52 0 z" fill="#22344C"/>
+  <path d="M208 233 q22 5 44 0" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" fill="none"/>
+
+  <!-- hard hat -->
+  <path d="M164 174 a66 66 0 0 1 132 0 z" fill="url(#uHat)"/>
+  <rect x="221" y="112" width="18" height="64" rx="8" fill="#D3DDEA"/>
+  <path d="M188 148 q14 -22 42 -26" stroke="#FFFFFF" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
+  <rect x="146" y="168" width="168" height="22" rx="11" fill="url(#uHat)"/>
+  <rect x="146" y="184" width="168" height="6" rx="3" fill="#B9C6D6" opacity="0.8"/>
+  <rect x="206" y="164" width="48" height="8" rx="4" fill="#1677FF" opacity="0.85"/>
+</svg>

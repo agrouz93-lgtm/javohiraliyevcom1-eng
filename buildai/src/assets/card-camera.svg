@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 200" width="360" height="200" role="img" aria-label="Kamera bilan o'lchash tasviri">
+  <defs>
+    <linearGradient id="cCamBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C2138"/>
+      <stop offset="1" stop-color="#0A1A2E"/>
+    </linearGradient>
+    <radialGradient id="cCamGlow" cx="0.7" cy="0.4" r="0.6">
+      <stop offset="0" stop-color="#1677FF" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#1677FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="360" height="200" rx="18" fill="url(#cCamBg)"/>
+  <rect width="360" height="200" rx="18" fill="url(#cCamGlow)"/>
+  <g stroke="#174D78" stroke-width="1" opacity="0.55">
+    <path d="M0 50 h360 M0 100 h360 M0 150 h360 M60 0 v200 M120 0 v200 M180 0 v200 M240 0 v200 M300 0 v200"/>
+  </g>
+
+  <!-- phone -->
+  <rect x="196" y="26" width="112" height="156" rx="18" fill="#0B1B30" stroke="#29B6FF" stroke-width="3"/>
+  <rect x="206" y="42" width="92" height="120" rx="8" fill="#0E2743"/>
+  <rect x="234" y="32" width="36" height="6" rx="3" fill="#29B6FF" opacity="0.7"/>
+
+  <!-- AR frame inside screen -->
+  <g stroke="#22C99A" stroke-width="3" fill="none">
+    <path d="M218 62 h14 M218 62 v14"/>
+    <path d="M286 62 h-14 M286 62 v14"/>
+    <path d="M218 142 h14 M218 142 v-14"/>
+    <path d="M286 142 h-14 M286 142 v-14"/>
+  </g>
+  <path d="M226 132 l24 -34 18 22 16 -26" stroke="#22C99A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <rect x="226" y="66" width="46" height="20" rx="6" fill="#22C99A" opacity="0.18" stroke="#22C99A" stroke-width="1.5"/>
+  <text x="249" y="80" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="700" fill="#8FF3D6" text-anchor="middle">2.40 m</text>
+  <circle cx="252" cy="152" r="10" fill="#29B6FF"/>
+  <path d="M248 152 h8 M252 148 v8" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- measured object with dimension line -->
+  <g>
+    <rect x="52" y="96" width="96" height="60" rx="6" fill="#123A63" stroke="#29B6FF" stroke-width="2"/>
+    <path d="M52 96 l24 -22 h96 l-24 22 z" fill="#17518A" stroke="#29B6FF" stroke-width="2"/>
+    <path d="M148 96 l24 -22 v60 l-24 22 z" fill="#0F3D6B" stroke="#29B6FF" stroke-width="2"/>
+    <path d="M40 172 h120" stroke="#FFD98A" stroke-width="2" stroke-dasharray="6 5"/>
+    <path d="M40 172 l10 -5 v10 z M160 172 l-10 -5 v10 z" fill="#FFD98A"/>
+    <text x="100" y="188" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" fill="#FFD98A" text-anchor="middle">3.20 m</text>
+  </g>
+</svg>

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 200" width="360" height="200" role="img" aria-label="Zamonaviy kalkulyator tasviri">
+  <defs>
+    <linearGradient id="cCalBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A2A2A"/>
+      <stop offset="1" stop-color="#08181F"/>
+    </linearGradient>
+    <radialGradient id="cCalGlow" cx="0.7" cy="0.4" r="0.6">
+      <stop offset="0" stop-color="#22C99A" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#22C99A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cCalBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#12405C"/>
+      <stop offset="1" stop-color="#0C2A44"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="200" rx="18" fill="url(#cCalBg)"/>
+  <rect width="360" height="200" rx="18" fill="url(#cCalGlow)"/>
+  <g stroke="#14504A" stroke-width="1" opacity="0.55">
+    <path d="M0 50 h360 M0 100 h360 M0 150 h360 M60 0 v200 M120 0 v200 M180 0 v200 M240 0 v200 M300 0 v200"/>
+  </g>
+
+  <!-- calculator body -->
+  <rect x="118" y="18" width="140" height="172" rx="16" fill="url(#cCalBody)" stroke="#22C99A" stroke-width="2.5"/>
+  <!-- display -->
+  <rect x="132" y="32" width="112" height="40" rx="8" fill="#04121C" stroke="#1E6F5E" stroke-width="1.5"/>
+  <text x="236" y="52" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#7FE9CB" text-anchor="end">1 240 000</text>
+  <text x="236" y="67" font-family="Inter, Arial, sans-serif" font-size="10" fill="#4FBF9E" text-anchor="end">so'm · m²</text>
+
+  <!-- keypad -->
+  <g>
+    <g fill="#0E3450">
+      <rect x="132" y="82" width="24" height="22" rx="6"/>
+      <rect x="162" y="82" width="24" height="22" rx="6"/>
+      <rect x="192" y="82" width="24" height="22" rx="6"/>
+      <rect x="132" y="110" width="24" height="22" rx="6"/>
+      <rect x="162" y="110" width="24" height="22" rx="6"/>
+      <rect x="192" y="110" width="24" height="22" rx="6"/>
+      <rect x="132" y="138" width="24" height="22" rx="6"/>
+      <rect x="162" y="138" width="24" height="22" rx="6"/>
+      <rect x="192" y="138" width="24" height="22" rx="6"/>
+      <rect x="162" y="164" width="24" height="18" rx="6"/>
+    </g>
+    <rect x="222" y="82" width="24" height="50" rx="6" fill="#1677FF"/>
+    <rect x="222" y="138" width="24" height="22" rx="6" fill="#22C99A"/>
+    <rect x="132" y="164" width="24" height="18" rx="6" fill="#0E3450"/>
+    <rect x="192" y="164" width="24" height="18" rx="6" fill="#0E3450"/>
+    <g font-family="Inter, Arial, sans-serif" font-size="11" font-weight="700" fill="#BFE9DD" text-anchor="middle">
+      <text x="144" y="97">7</text><text x="174" y="97">8</text><text x="204" y="97">9</text>
+      <text x="144" y="125">4</text><text x="174" y="125">5</text><text x="204" y="125">6</text>
+      <text x="144" y="153">1</text><text x="174" y="153">2</text><text x="204" y="153">3</text>
+      <text x="174" y="177">0</text><text x="144" y="177">.</text><text x="204" y="177">±</text>
+    </g>
+    <text x="234" y="114" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="800" fill="#FFFFFF" text-anchor="middle">÷</text>
+    <text x="234" y="154" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#04121C" text-anchor="middle">=</text>
+  </g>
+
+  <!-- floating math marks -->
+  <g font-family="Inter, Arial, sans-serif" font-weight="800" fill="#22C99A" opacity="0.85">
+    <text x="56" y="70" font-size="30">%</text>
+    <text x="74" y="128" font-size="22">×</text>
+    <text x="46" y="158" font-size="24">+</text>
+    <text x="296" y="150" font-size="26">=</text>
+    <text x="300" y="94" font-size="20">÷</text>
+  </g>
+</svg>

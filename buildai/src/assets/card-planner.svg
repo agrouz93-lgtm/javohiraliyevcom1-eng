@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 200" width="360" height="200" role="img" aria-label="Uy loyihasi chizimi tasviri">
+  <defs>
+    <linearGradient id="cPlnBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2A1E0C"/>
+      <stop offset="1" stop-color="#15142A"/>
+    </linearGradient>
+    <radialGradient id="cPlnGlow" cx="0.7" cy="0.38" r="0.6">
+      <stop offset="0" stop-color="#F5A524" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#F5A524" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="360" height="200" rx="18" fill="url(#cPlnBg)"/>
+  <rect width="360" height="200" rx="18" fill="url(#cPlnGlow)"/>
+  <g stroke="#4A3A1E" stroke-width="1" opacity="0.5">
+    <path d="M0 50 h360 M0 100 h360 M0 150 h360 M60 0 v200 M120 0 v200 M180 0 v200 M240 0 v200 M300 0 v200"/>
+  </g>
+
+  <!-- blueprint sheet -->
+  <rect x="64" y="26" width="196" height="150" rx="10" fill="#0F3B66" stroke="#FFD98A" stroke-width="2.5"/>
+  <g stroke="#EAF3FF" stroke-width="3" fill="none">
+    <rect x="84" y="46" width="82" height="58"/>
+    <rect x="166" y="46" width="74" height="34"/>
+    <rect x="166" y="80" width="74" height="60"/>
+    <rect x="84" y="104" width="82" height="46"/>
+  </g>
+  <g stroke="#8FD8FF" stroke-width="2" fill="none">
+    <path d="M120 46 v10 M166 66 h-10 M200 80 v-10 M120 150 v-10"/>
+    <path d="M84 128 h10" stroke-dasharray="4 4"/>
+  </g>
+  <g font-family="Inter, Arial, sans-serif" font-size="9" font-weight="700" fill="#8FD8FF">
+    <text x="94" y="62">Yotoq</text>
+    <text x="176" y="62">Oshxona</text>
+    <text x="94" y="120">Mehmon</text>
+    <text x="176" y="98">Hammom</text>
+  </g>
+  <!-- door arcs -->
+  <path d="M166 118 a14 14 0 0 1 -14 14" stroke="#FFD98A" stroke-width="2" fill="none"/>
+  <path d="M120 104 a14 14 0 0 1 14 14" stroke="#FFD98A" stroke-width="2" fill="none"/>
+  <!-- dimension line -->
+  <path d="M64 186 h196" stroke="#FFD98A" stroke-width="2"/>
+  <path d="M64 186 l10 -5 v10 z M260 186 l-10 -5 v10 z" fill="#FFD98A"/>
+  <text x="162" y="18" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="700" fill="#FFD98A" text-anchor="middle">12.0 m × 8.5 m</text>
+
+  <!-- 3D house accent -->
+  <g transform="translate(268 74)">
+    <path d="M0 40 L34 12 L68 40 v46 H0 z" fill="#123A63" stroke="#F5A524" stroke-width="2.5"/>
+    <path d="M-6 42 L34 6 L74 42" stroke="#F5A524" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <rect x="14" y="52" width="18" height="16" rx="2" fill="#FFD98A"/>
+    <rect x="42" y="52" width="16" height="34" rx="2" fill="#0B2545" stroke="#F5A524" stroke-width="2"/>
+  </g>
+</svg>

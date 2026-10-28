@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" width="640" height="420" role="img" aria-label="Zamonaviy uy qurilishi manzarasi">
+  <defs>
+    <linearGradient id="hSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0B2545"/>
+      <stop offset="1" stop-color="#081A30"/>
+    </linearGradient>
+    <radialGradient id="hGlow" cx="0.55" cy="0.45" r="0.55">
+      <stop offset="0" stop-color="#1677FF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#1677FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hWall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17406B"/>
+      <stop offset="1" stop-color="#102E50"/>
+    </linearGradient>
+    <linearGradient id="hGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD98A"/>
+      <stop offset="1" stop-color="#FFB74D"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="640" height="420" rx="24" fill="url(#hSky)"/>
+  <rect width="640" height="420" rx="24" fill="url(#hGlow)"/>
+
+  <!-- stars -->
+  <g fill="#9EB7D3" opacity="0.7">
+    <circle cx="90" cy="52" r="2"/><circle cx="170" cy="86" r="1.6"/><circle cx="330" cy="44" r="1.8"/>
+    <circle cx="470" cy="62" r="1.6"/><circle cx="560" cy="40" r="2"/><circle cx="610" cy="110" r="1.6"/>
+  </g>
+
+  <!-- crane -->
+  <g stroke="#F5A524" fill="#F5A524">
+    <rect x="76" y="96" width="14" height="248" stroke="none"/>
+    <rect x="56" y="96" width="266" height="10" stroke="none" rx="4"/>
+    <path d="M83 96 L 60 122 M83 96 L 106 122" stroke="#F5A524" stroke-width="4" fill="none"/>
+    <path d="M120 106 v18 M170 106 v18 M220 106 v18 M270 106 v18" stroke="#F5A524" stroke-width="3"/>
+    <path d="M300 106 v96" stroke="#F5A524" stroke-width="2.5"/>
+    <rect x="284" y="202" width="34" height="26" rx="4" stroke="none" fill="#29B6FF"/>
+    <path d="M288 208 h26 M288 216 h26 M288 224 h18" stroke="#0B2545" stroke-width="2"/>
+  </g>
+  <rect x="58" y="340" width="50" height="16" rx="4" fill="#0E2B4E"/>
+
+  <!-- ground -->
+  <rect x="0" y="344" width="640" height="76" fill="#0A1D33"/>
+  <rect x="0" y="344" width="640" height="4" fill="#174D78"/>
+
+  <!-- house: lower storey -->
+  <rect x="300" y="212" width="272" height="132" fill="url(#hWall)" stroke="#2A5C93" stroke-width="2"/>
+  <!-- unplastered brick side (under construction) -->
+  <g fill="#C46A4A">
+    <rect x="300" y="212" width="96" height="132"/>
+  </g>
+  <g stroke="#A5533A" stroke-width="2">
+    <path d="M300 234 h96 M300 256 h96 M300 278 h96 M300 300 h96 M300 322 h96"/>
+    <path d="M324 212 v22 M348 234 v22 M372 256 v22 M300 256 h0"/>
+    <path d="M312 212 v22 M336 234 v22 M360 256 v22 M384 278 v22 M312 278 v22 M336 300 v22 M360 322 v22 M384 212 v22"/>
+  </g>
+
+  <!-- upper storey -->
+  <rect x="344" y="132" width="228" height="80" fill="url(#hWall)" stroke="#2A5C93" stroke-width="2"/>
+  <rect x="336" y="122" width="244" height="14" rx="4" fill="#0E2B4E" stroke="#2A5C93"/>
+
+  <!-- windows -->
+  <rect x="420" y="240" width="66" height="52" rx="4" fill="url(#hGlass)"/>
+  <rect x="498" y="240" width="58" height="52" rx="4" fill="url(#hGlass)" opacity="0.85"/>
+  <rect x="420" y="240" width="66" height="52" rx="4" fill="none" stroke="#0B2545" stroke-width="3"/>
+  <rect x="498" y="240" width="58" height="52" rx="4" fill="none" stroke="#0B2545" stroke-width="3"/>
+  <path d="M453 240 v52 M420 266 h66 M527 240 v52" stroke="#0B2545" stroke-width="3"/>
+  <rect x="374" y="150" width="70" height="46" rx="4" fill="#8FD8FF" opacity="0.9" stroke="#0B2545" stroke-width="3"/>
+  <rect x="470" y="150" width="70" height="46" rx="4" fill="#8FD8FF" opacity="0.75" stroke="#0B2545" stroke-width="3"/>
+  <path d="M509 150 v46" stroke="#0B2545" stroke-width="3"/>
+
+  <!-- door -->
+  <rect x="418" y="296" width="46" height="48" rx="4" fill="#0B2545" stroke="#2A5C93" stroke-width="2"/>
+  <circle cx="456" cy="322" r="3.5" fill="#FFD98A"/>
+
+  <!-- scaffolding over brick part -->
+  <g stroke="#7E93AD" stroke-width="4">
+    <path d="M296 196 v148 M346 196 v148 M396 196 v148"/>
+    <path d="M292 236 h108 M292 284 h108 M292 332 h108"/>
+  </g>
+
+  <!-- blueprint sheet leaning -->
+  <g transform="rotate(-8 236 300)">
+    <rect x="186" y="252" width="104" height="92" rx="6" fill="#EAF3FF" stroke="#B9CCE4" stroke-width="2"/>
+    <path d="M196 272 h60 M196 286 h84 M196 300 h44 M196 314 h72 M196 328 h52" stroke="#1677FF" stroke-width="3" opacity="0.7"/>
+    <rect x="240" y="266" width="42" height="30" fill="none" stroke="#1677FF" stroke-width="3"/>
+  </g>
+
+  <!-- material stacks -->
+  <g>
+    <g fill="#C46A4A">
+      <rect x="120" y="316" width="34" height="16" rx="2"/>
+      <rect x="158" y="316" width="34" height="16" rx="2"/>
+      <rect x="139" y="298" width="34" height="16" rx="2"/>
+      <rect x="120" y="298" width="16" height="16" rx="2"/>
+      <rect x="176" y="298" width="16" height="16" rx="2"/>
+      <rect x="139" y="280" width="34" height="16" rx="2"/>
+    </g>
+    <path d="M96 344 q26 -42 66 -42 t70 42 z" fill="#D9C08A"/>
+    <rect x="52" y="304" width="44" height="40" rx="6" fill="#9AA9BC"/>
+    <rect x="52" y="316" width="44" height="12" fill="#1677FF"/>
+    <path d="M58 310 h32" stroke="#E7EDF5" stroke-width="3"/>
+  </g>
+
+  <!-- foreground glow line -->
+  <rect x="0" y="344" width="640" height="2" fill="#29B6FF" opacity="0.5"/>
+</svg>

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 200" width="360" height="200" role="img" aria-label="Qurilish mahsulotlari savatchasi tasviri">
+  <defs>
+    <linearGradient id="cShopBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2C1030"/>
+      <stop offset="1" stop-color="#180D22"/>
+    </linearGradient>
+    <radialGradient id="cShopGlow" cx="0.68" cy="0.4" r="0.6">
+      <stop offset="0" stop-color="#FF5C8A" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#FF5C8A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="360" height="200" rx="18" fill="url(#cShopBg)"/>
+  <rect width="360" height="200" rx="18" fill="url(#cShopGlow)"/>
+  <g stroke="#4C2347" stroke-width="1" opacity="0.55">
+    <path d="M0 50 h360 M0 100 h360 M0 150 h360 M60 0 v200 M120 0 v200 M180 0 v200 M240 0 v200 M300 0 v200"/>
+  </g>
+
+  <!-- cart -->
+  <g stroke="#FF8FAB" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M92 62 h26 l26 84 h96"/>
+    <path d="M126 84 h146 l-16 48 h-104"/>
+  </g>
+  <circle cx="166" cy="170" r="11" fill="#FF5C8A"/>
+  <circle cx="238" cy="170" r="11" fill="#FF5C8A"/>
+  <circle cx="166" cy="170" r="4" fill="#180D22"/>
+  <circle cx="238" cy="170" r="4" fill="#180D22"/>
+  <path d="M84 56 h12" stroke="#FFD98A" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- items in cart -->
+  <g>
+    <!-- paint bucket -->
+    <path d="M140 74 h44 l-6 42 h-32 z" fill="#22C99A" stroke="#0E7A5D" stroke-width="2"/>
+    <rect x="136" y="66" width="52" height="12" rx="4" fill="#8FF3D6"/>
+    <path d="M148 66 q14 -18 28 0" stroke="#0E7A5D" stroke-width="3" fill="none"/>
+    <rect x="146" y="88" width="32" height="12" rx="3" fill="#0E7A5D" opacity="0.6"/>
+    <!-- bricks -->
+    <rect x="196" y="86" width="40" height="18" rx="3" fill="#C46A4A" stroke="#A5533A" stroke-width="2"/>
+    <rect x="206" y="68" width="40" height="18" rx="3" fill="#CE7452" stroke="#A5533A" stroke-width="2"/>
+    <!-- plank -->
+    <rect x="246" y="76" width="46" height="14" rx="5" fill="#D89E5C" stroke="#8E5F2E" stroke-width="2" transform="rotate(-8 269 83)"/>
+  </g>
+
+  <!-- price tag -->
+  <g transform="rotate(-12 300 56)">
+    <path d="M274 40 h34 a6 6 0 0 1 6 6 v26 a6 6 0 0 1 -6 6 h-34 l-16 -19 z" fill="#FFD98A"/>
+    <circle cx="304" cy="59" r="6" fill="#180D22"/>
+    <text x="288" y="64" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="800" fill="#5A3E00" text-anchor="middle">%</text>
+  </g>
+</svg>
