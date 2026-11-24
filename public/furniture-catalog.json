@@ -1,0 +1,371 @@
+{
+  "categories": [
+    {
+      "id": "sofas",
+      "name": "Divan va yumshoq mebellar"
+    },
+    {
+      "id": "dining",
+      "name": "Stol va stullar"
+    },
+    {
+      "id": "bedroom",
+      "name": "Yotoqxona mebellari"
+    },
+    {
+      "id": "wardrobe",
+      "name": "Shkaf va garderob"
+    },
+    {
+      "id": "kitchen",
+      "name": "Oshxona mebellari"
+    },
+    {
+      "id": "bathroom",
+      "name": "Hammom jihozlari"
+    },
+    {
+      "id": "tv",
+      "name": "Televizor tokchalari"
+    },
+    {
+      "id": "office",
+      "name": "Ofis mebellari"
+    },
+    {
+      "id": "lighting",
+      "name": "Yoritish jihozlari"
+    },
+    {
+      "id": "decor",
+      "name": "Dekoratsiyalar"
+    }
+  ],
+  "products": [
+    {
+      "id": "sofa-white",
+      "name": "Zamonaviy oq divan",
+      "category": "sofas",
+      "modelKind": "sofa",
+      "dimensions": {
+        "width": 2.4,
+        "height": 0.9,
+        "depth": 0.95
+      },
+      "material": "Mato",
+      "colors": [
+        "#e6e1d9",
+        "#665c73",
+        "#34383e"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/sofa-white.glb",
+      "imageUrl": "/furniture-thumbs/v1/sofa-white.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "sofa-violet",
+      "name": "Binafsha yumshoq divan",
+      "category": "sofas",
+      "modelKind": "sofa",
+      "dimensions": {
+        "width": 2.1,
+        "height": 0.86,
+        "depth": 0.9
+      },
+      "material": "Mato",
+      "colors": [
+        "#766184",
+        "#c4b49f",
+        "#e8e5df"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/sofa-violet.glb",
+      "imageUrl": "/furniture-thumbs/v1/sofa-violet.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "dining-table",
+      "name": "Olti kishilik ovqatlanish stoli",
+      "category": "dining",
+      "modelKind": "table",
+      "dimensions": {
+        "width": 1.8,
+        "height": 0.76,
+        "depth": 0.9
+      },
+      "material": "Yog‘och",
+      "colors": [
+        "#a57a51",
+        "#e2d4be",
+        "#363433"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/dining-table.glb",
+      "imageUrl": "/furniture-thumbs/v1/dining-table.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "coffee-table",
+      "name": "Jurnal stoli",
+      "category": "dining",
+      "modelKind": "table",
+      "dimensions": {
+        "width": 1.1,
+        "height": 0.42,
+        "depth": 0.6
+      },
+      "material": "Yog‘och",
+      "colors": [
+        "#b28b61",
+        "#e4ddcf",
+        "#353638"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/coffee-table.glb",
+      "imageUrl": "/furniture-thumbs/v1/coffee-table.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "chair-soft",
+      "name": "Yumshoq ovqatlanish stuli",
+      "category": "dining",
+      "modelKind": "chair",
+      "dimensions": {
+        "width": 0.5,
+        "height": 0.85,
+        "depth": 0.55
+      },
+      "material": "Mato",
+      "colors": [
+        "#c8b89c",
+        "#666e72",
+        "#dedbd0"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/chair-soft.glb",
+      "imageUrl": "/furniture-thumbs/v1/chair-soft.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "bed-double",
+      "name": "Ikki kishilik karavot",
+      "category": "bedroom",
+      "modelKind": "bed",
+      "dimensions": {
+        "width": 1.8,
+        "height": 1.05,
+        "depth": 2.1
+      },
+      "material": "Mato",
+      "colors": [
+        "#b5a691",
+        "#6c6372",
+        "#e2ddd4"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/bed-double.glb",
+      "imageUrl": "/furniture-thumbs/v1/bed-double.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "wardrobe-oak",
+      "name": "Ikki eshikli garderob",
+      "category": "wardrobe",
+      "modelKind": "wardrobe",
+      "dimensions": {
+        "width": 1.6,
+        "height": 2.2,
+        "depth": 0.6
+      },
+      "material": "Yog‘och",
+      "colors": [
+        "#c7b28b",
+        "#454442",
+        "#ede8dd"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/wardrobe-oak.glb",
+      "imageUrl": "/furniture-thumbs/v1/wardrobe-oak.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "kitchen-set",
+      "name": "Oshxona moduli",
+      "category": "kitchen",
+      "modelKind": "kitchen",
+      "dimensions": {
+        "width": 2.4,
+        "height": 0.9,
+        "depth": 0.65
+      },
+      "material": "Yog‘och",
+      "colors": [
+        "#d8d3c7",
+        "#565e61",
+        "#a88464"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/kitchen-set.glb",
+      "imageUrl": "/furniture-thumbs/v1/kitchen-set.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "bathroom-vanity",
+      "name": "Hammom shkafi va rakovina",
+      "category": "bathroom",
+      "modelKind": "vanity",
+      "dimensions": {
+        "width": 1,
+        "height": 0.95,
+        "depth": 0.55
+      },
+      "material": "Yog‘och",
+      "colors": [
+        "#d8cec0",
+        "#605b56",
+        "#f3f0e8"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/bathroom-vanity.glb",
+      "imageUrl": "/furniture-thumbs/v1/bathroom-vanity.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "tv-console",
+      "name": "Televizor tokchasi",
+      "category": "tv",
+      "modelKind": "tv",
+      "dimensions": {
+        "width": 1.8,
+        "height": 0.55,
+        "depth": 0.45
+      },
+      "material": "Yog‘och",
+      "colors": [
+        "#b08c64",
+        "#444844",
+        "#e7e0d4"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/tv-console.glb",
+      "imageUrl": "/furniture-thumbs/v1/tv-console.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "office-desk",
+      "name": "Ish stoli",
+      "category": "office",
+      "modelKind": "desk",
+      "dimensions": {
+        "width": 1.4,
+        "height": 0.76,
+        "depth": 0.7
+      },
+      "material": "Yog‘och",
+      "colors": [
+        "#c1a178",
+        "#424851",
+        "#ebe5d9"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/office-desk.glb",
+      "imageUrl": "/furniture-thumbs/v1/office-desk.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "floor-lamp",
+      "name": "Zamonaviy pol chirog‘i",
+      "category": "lighting",
+      "modelKind": "lamp",
+      "dimensions": {
+        "width": 0.5,
+        "height": 1.65,
+        "depth": 0.5
+      },
+      "material": "Metall",
+      "colors": [
+        "#e0c78d",
+        "#494a4d",
+        "#e6e1d8"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/floor-lamp.glb",
+      "imageUrl": "/furniture-thumbs/v1/floor-lamp.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    },
+    {
+      "id": "indoor-plant",
+      "name": "Dekorativ yashil o‘simlik",
+      "category": "decor",
+      "modelKind": "plant",
+      "dimensions": {
+        "width": 0.55,
+        "height": 1,
+        "depth": 0.55
+      },
+      "material": "Keramika",
+      "colors": [
+        "#b99876",
+        "#414646",
+        "#ddd3c2"
+      ],
+      "price": null,
+      "available": true,
+      "description": "USTA PRO uchun yaratilgan, o‘lchami va rangi tahrirlanadigan 3D interyer modeli.",
+      "modelUrl": "/furniture-models/v1/indoor-plant.glb",
+      "imageUrl": "/furniture-thumbs/v1/indoor-plant.png",
+      "version": 1,
+      "createdAt": "2026-11-23T00:00:00Z",
+      "origin": "original"
+    }
+  ]
+}

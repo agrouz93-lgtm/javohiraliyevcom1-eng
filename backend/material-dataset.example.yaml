@@ -1,0 +1,12 @@
+# Replace path with the absolute root of your real annotated dataset.
+path: /absolute/path/to/material-dataset
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: slate
+  1: board
+  2: beam
+  3: brick
+  4: block
+  5: pipe

@@ -1,0 +1,16 @@
+node_modules/
+.next/
+.env
+.env.local
+.venv/
+__pycache__/
+*.pt
+.npm-cache/
+.python/
+.uv-cache/
+*.tsbuildinfo
+.apk-tools/
+.apk-web/
+android/.build/
+android/*.apk
+.usta-data/
