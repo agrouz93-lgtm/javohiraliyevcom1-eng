@@ -24,8 +24,7 @@ async function analyzeImage(
     img.src = url;
   });
 
-  const maxW = 480;
-  const scale = Math.min(1, maxW / img.naturalWidth);
+  const scale = Math.min(1, 480 / Math.max(img.naturalWidth, img.naturalHeight));
   const w = Math.max(1, Math.round(img.naturalWidth * scale));
   const h = Math.max(1, Math.round(img.naturalHeight * scale));
 
@@ -38,7 +37,7 @@ async function analyzeImage(
   const { data } = ctx.getImageData(0, 0, w, h);
 
   // background estimate: average colour of the four corner patches
-  const patch = Math.max(4, Math.floor(Math.min(w, h) / 40));
+  const patch = Math.max(1, Math.floor(Math.min(w, h) / 40));
   let br = 0, bg = 0, bb = 0, n = 0;
   const corners = [
     [0, 0], [w - patch, 0], [0, h - patch], [w - patch, h - patch],
@@ -119,6 +118,12 @@ export function CounterPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const analysisId = useRef(0);
+
+  useEffect(() => () => {
+    analysisId.current++;
+    if (imageUrl?.startsWith('blob:')) URL.revokeObjectURL(imageUrl);
+  }, [imageUrl]);
 
   const uploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -145,10 +150,12 @@ export function CounterPage() {
       setError('Iltimos, avval rasm yuklang');
       return;
     }
+    const id = ++analysisId.current;
     setIsProcessing(true);
     setError(null);
     try {
       const res = await analyzeImage(imageUrl, sensitivity);
+      if (id !== analysisId.current) return;
       setCount(res.count);
       setConfirmedCount(res.count);
       setBoxes(res.boxes);
@@ -157,14 +164,16 @@ export function CounterPage() {
         setError("Fon va obyektlar orasidagi farq kam — sezuvchanlikni o'zgartirib qayta sinang");
       }
     } catch (err: any) {
-      setError(err?.message || 'Tahlilda xatolik yuz berdi');
+      if (id === analysisId.current) setError(err?.message || 'Tahlilda xatolik yuz berdi');
     }
-    setIsProcessing(false);
+    if (id === analysisId.current) setIsProcessing(false);
   }, [imageUrl, sensitivity]);
 
   const addManual = () => setCount((p) => p + 1);
   const removeOne = () => setCount((p) => Math.max(0, p - 1));
   const reset = () => {
+    analysisId.current++;
+    setIsProcessing(false);
     setImageUrl(null);
     setCount(0);
     setConfirmedCount(0);
@@ -214,23 +223,16 @@ export function CounterPage() {
                 {imageUrl ? (
                   <>
                     <img src={imageUrl} alt="Yuklangan rasm" className="w-full h-full object-contain" />
-                    {imgSize &&
-                      boxes.map((b, i) => (
-                        <div
-                          key={i}
-                          className="absolute border-2 border-[#22C99A] rounded-sm"
-                          style={{
-                            left: `${(b.x / imgSize.w) * 100}%`,
-                            top: `${(b.y / imgSize.h) * 100}%`,
-                            width: `${(b.w / imgSize.w) * 100}%`,
-                            height: `${(b.h / imgSize.h) * 100}%`,
-                          }}
-                        >
-                          <span className="absolute -top-4 left-0 text-[9px] font-bold px-1 rounded bg-[#22C99A] text-[#061426]">
-                            {i + 1}
-                          </span>
-                        </div>
-                      ))}
+                    {imgSize && (
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${imgSize.w} ${imgSize.h}`} aria-hidden="true">
+                        {boxes.map((box, index) => (
+                          <g key={index}>
+                            <rect x={box.x} y={box.y} width={box.w} height={box.h} fill="none" stroke="#22C99A" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                            <text x={box.x + 2} y={box.y + 12} fill="#22C99A" fontSize="12">{index + 1}</text>
+                          </g>
+                        ))}
+                      </svg>
+                    )}
                   </>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-center p-8">

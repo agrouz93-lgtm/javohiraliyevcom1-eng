@@ -1,22 +1,21 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/store';
 import { t } from '@/translations';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useNav } from '@/context/NavContext';
-import { RotateCcw, Circle, AlertCircle, ScanSearch } from 'lucide-react';
+import { RotateCcw, Circle, ScanSearch } from 'lucide-react';
 
 interface Point { x: number; y: number; label: string; }
-interface WallLine { p1: Point; p2: Point; lengthM: number; }
+interface WallLine { p1: Point; p2: Point; lengthPx: number; }
 
 type MeasureMode = 'room' | 'wall' | 'floor' | 'exterior' | 'manual' | 'volume';
 
 export function CameraPage() {
-  const { language, unit, addMeasurement, measurements, setPendingCountImage } = useAppStore();
+  const { language, addMeasurement, measurements, setPendingCountImage } = useAppStore();
   const { setActivePage } = useNav();
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
-  const [isSupported, setIsSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [captured, setCaptured] = useState<string | null>(null);
   const [imgDims, setImgDims] = useState<{ w: number; h: number } | null>(null);
@@ -30,30 +29,42 @@ export function CameraPage() {
   const [manualHeight, setManualHeight] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-const MEASUREMENT_MODES = ['room', 'wall', 'floor', 'exterior', 'manual', 'volume'] as const;
-const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
+  const MEASUREMENT_MODES = ['room', 'wall', 'floor', 'exterior', 'manual', 'volume'] as const;
+  const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
   const [mPerPixel, setMPixel] = useState(0.005); // calibrated scale: metres per pixel (adjust with a known object)
 
   useEffect(() => {
-    initCamera();
-    return () => { if (stream) stream.getTracks().forEach((t) => t.stop()); };
+    let cancelled = false;
+    let currentStream: MediaStream | undefined;
+    setStream(null);
+    setError(null);
+
+    async function initCamera() {
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) throw new Error('Kamera mavjud emas');
+        const nextStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode, width: 1280, height: 720 },
+        });
+        if (cancelled) {
+          nextStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        currentStream = nextStream;
+        setStream(nextStream);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Kamera ruxsati rad etildi');
+      }
+    }
+    void initCamera();
+    return () => {
+      cancelled = true;
+      currentStream?.getTracks().forEach((track) => track.stop());
+    };
   }, [facingMode]);
 
-  const initCamera = async () => {
-    try {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setIsSupported(false);
-        setError('Kamera mavjud emas');
-        return;
-      }
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode, width: 1280, height: 720 } });
-      setStream(s);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Kamera ruxsati rad etildi');
-      setIsSupported(false);
-    }
-  };
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.srcObject = stream;
+  }, [stream, captured]);
 
   const switchCamera = () => setFacingMode((p) => (p === 'user' ? 'environment' : 'user'));
 
@@ -61,13 +72,14 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
     if (!videoRef.current || !stream) return;
     const canvas = document.createElement('canvas');
     const v = videoRef.current;
-    canvas.width = v.videoWidth || 640;
-    canvas.height = v.videoHeight || 480;
+    if (!v.videoWidth || !v.videoHeight) return;
+    canvas.width = v.videoWidth;
+    canvas.height = v.videoHeight;
     const ctx = canvas.getContext('2d')!;
     ctx.drawImage(v, 0, 0);
     setCaptured(canvas.toDataURL('image/jpeg'));
     setImgDims({ w: canvas.width, h: canvas.height });
-    setWalls([]); setPoints([]);
+    clearMeasurements();
   };
 
   const uploadPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,8 +94,7 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
     im.onload = () => {
       setCaptured(url);
       setImgDims({ w: im.naturalWidth, h: im.naturalHeight });
-      setWalls([]);
-      setPoints([]);
+      clearMeasurements();
       setError(null);
     };
     im.onerror = () => setError("Rasmni o'qib bo'lmadi");
@@ -93,80 +104,56 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!measuring || !captured || !imgDims || !overlayRef.current) return;
     const rect = overlayRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (imgDims.w / rect.width);
-    const y = (e.clientY - rect.top) * (imgDims.h / rect.height);
-    const clampedX = Math.max(0, Math.min(imgDims.w, x));
-    const clampedY = Math.max(0, Math.min(imgDims.h, y));
-    const label = `${points.length}`;
-    const newPoint = { x: clampedX, y: clampedY, label };
+    if ((e.target as Element).closest('button')) return;
+    const scale = Math.min(rect.width / imgDims.w, rect.height / imgDims.h);
+    const x = (e.clientX - rect.left - (rect.width - imgDims.w * scale) / 2) / scale;
+    const y = (e.clientY - rect.top - (rect.height - imgDims.h * scale) / 2) / scale;
+    if (x < 0 || x > imgDims.w || y < 0 || y > imgDims.h) return;
+    const newPoint = { x, y, label: String(points.length) };
     setPoints((prev) => [...prev, newPoint]);
-    if (points.length > 0) {
-      const last = points[points.length - 1];
-      addWall(last, newPoint);
+    setSaved(false);
+    const last = points[points.length - 1];
+    if (last) {
+      setWalls((prev) => [...prev, { p1: last, p2: newPoint, lengthPx: Math.hypot(x - last.x, y - last.y) }]);
     }
   };
-  const addWall = (p1: Point, p2: Point) => {
-    const dx = p2.x - p1.x, dy = p2.y - p1.y;
-    const distPx = Math.sqrt(dx * dx + dy * dy);
-    const lengthM = distPx * mPerPixel;
-    const id = Date.now().toString();
-    setWalls((prev) => [...prev, { p1, p2, lengthM }]);
-    setPoints((prev) => [...prev, { ...p1, label: p1.label || id }, { ...p2, label: p2.label || id }]);
+
+  const clearMeasurements = () => {
+    setWalls([]);
+    setPoints([]);
+    setSaved(false);
   };
 
-  const clearMeasurements = () => { setWalls([]); setPoints([]); };
+  const totalLength = walls.reduce((sum, wall) => sum + wall.lengthPx, 0) * mPerPixel;
+  const polygonArea = points.length < 3 ? 0 : Math.abs(points.reduce((sum, point, index) => {
+    const next = points[(index + 1) % points.length];
+    return sum + point.x * next.y - next.x * point.y;
+  }, 0)) / 2 * mPerPixel ** 2;
+  const length = Number(manualLen);
+  const width = Number(manualWid);
+  const hasManualDimensions = length > 0 && width > 0 && Number.isFinite(length * width) && Number.isFinite(2 * (length + width));
+  const area = hasManualDimensions ? length * width : polygonArea;
+  const closingLength = points.length < 3 ? 0 : Math.hypot(
+    points[0].x - points[points.length - 1].x,
+    points[0].y - points[points.length - 1].y,
+  ) * mPerPixel;
+  const perimeter = hasManualDimensions ? 2 * (length + width) : totalLength + closingLength;
+  const roomCount = area > 0 ? 1 : 0;
 
-  const totalLength = walls.reduce((s, w) => s + w.lengthM, 0);
-  const area = (() => {
-    // rough polygon area from wall endpoints (shoelace on unique points) - demo approximation
-    const pts = walls.flatMap(w => [w.p1, w.p2]);
-    if (pts.length < 3) return 0;
-    let sum = 0;
-    for (let i = 0; i < pts.length; i++) {
-      const p1 = pts[i], p2 = pts[(i + 1) % pts.length];
-      sum += p1.x * p2.y - p2.x * p1.y;
-    }
-    return Math.abs(sum) / 2 * mPerPixel * mPerPixel;
-  })();
-  const perimeter = totalLength;
-  const roomCount = Math.max(1, Math.floor(walls.length / 4));
-
-  const saveMeasurement = useCallback(() => {
-    const m = {
+  const saveMeasurement = () => {
+    addMeasurement({
       id: Date.now().toString(),
-      type: 'manual' as const,
-      length: Number(manualLen || totalLength),
-      width: Number(manualWid || area ? Math.sqrt(area) : 0),
-      area: area || Number(manualLen || 0) * Number(manualWid || 0),
+      type: 'manual',
+      length: hasManualDimensions ? length : totalLength,
+      width: hasManualDimensions ? width : 0,
+      area,
       perimeter,
-      unit,
+      unit: 'm',
       image: captured ?? undefined,
       createdAt: new Date(),
-    };
-    addMeasurement(m);
+    });
     setSaved(true);
-  }, [manualLen, manualWid, totalLength, area, perimeter, unit, captured, addMeasurement]);
-
-  if (!isSupported) {
-    return (
-      <div className="min-h-screen bg-[#061426] flex items-center justify-center p-6">
-        <Card className="max-w-md w-full text-center p-8">
-          <AlertCircle className="w-12 h-12 text-[#FF6B6B] mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#F5F8FF] mb-2">{t(language, 'camera')}</h2>
-          <p className="text-[#9EB7D3] mb-4">{error || 'Kamera qo\'llab-quvvatlanmaydi'}</p>
-          <p className="text-[#6B7C93] text-sm mb-6">AR o'lchash qurilma tomonidan qo'llab-quvvatlanmasa, quyidagi rejimdan foydalaning:</p>
-          <div className="space-y-2">
-            <Button className="w-full" onClick={() => { setManualLen(''); setManualWid(''); setMeasureMode('manual'); }}>
-              {t(language, 'measureManual')}
-            </Button>
-            <Button variant="outline" className="w-full" onClick={switchCamera}>
-              {t(language, 'switchCamera')}
-            </Button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="min-h-screen bg-[#061426]">
@@ -197,6 +184,7 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
             )}
           </div>
         </div>
+        {error && <p role="status" className="mb-4 text-sm text-[#FF6B6B]">{error}. Rasm yuklash yoki qo‘lda o‘lchash mumkin.</p>}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 bg-[#102943] border border-[#174D78] rounded-lg px-3 py-2 text-xs text-[#9EB7D3]">
           <span>{t(language, 'approxNote')}</span>
           <label className="flex items-center gap-2">
@@ -220,11 +208,10 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
   className="relative rounded-2xl overflow-hidden border border-[#174D78] shadow-2xl aspect-video bg-black">
               {captured ? (
                 <>
-                  <img src={captured} alt="Captured" className="w-full h-full object-cover block" />
+                  <img src={captured} alt="Captured" className="w-full h-full object-contain block" />
                   <svg
                     className="absolute inset-0 w-full h-full pointer-events-none"
-                    width={imgDims?.w ?? 640}
-                    height={imgDims?.h ?? 480}
+                    viewBox={imgDims ? `0 0 ${imgDims.w} ${imgDims.h}` : undefined}
                   >
                     <defs>
                       <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
@@ -241,9 +228,9 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
                         <text
                           x={(w.p1.x + w.p2.x) / 2} y={(w.p1.y + w.p2.y) / 2 - 8}
                           fill="#29B6FF" fontSize="12" fontWeight="700" textAnchor="middle"
-                          stroke="#000" strokeWidth="3" paint-order="stroke"
+                          stroke="#000" strokeWidth="3" paintOrder="stroke"
                         >
-                          {w.lengthM.toFixed(2)} m
+                          {(w.lengthPx * mPerPixel).toFixed(2)} m
                         </text>
                       </g>
                     ))}
@@ -276,7 +263,7 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
                       <Button variant="outline" size="sm" onClick={clearMeasurements}>
                         Tozalash
                       </Button>
-                      <Button className="w-12 h-12 rounded-full bg-[#22C99A] flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)]" onClick={capturePhoto}>
+                      <Button className="w-12 h-12 rounded-full bg-[#22C99A] flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)]" onClick={() => setCaptured(null)} aria-label="Kameraga qaytish">
                         <Circle className="w-6 h-6 text-white" />
                       </Button>
                     </div>
@@ -338,21 +325,21 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
           </div>
           <div className="lg:col-span-1 space-y-6">
             <Card className="p-5">
-              <h3 className="text-[#F5F8FF] font-semibold mb-4">Qonda o'lchash</h3>
+              <h3 className="text-[#F5F8FF] font-semibold mb-4">Qo'lda o'lchash</h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-[#9EB7D3] mb-2">Uzunlik (m)</label>
-                  <input type="number" value={manualLen} onChange={(e) => setManualLen(e.target.value)} className="w-full bg-[#0A1D33] border border-[#174D78] rounded-lg text-[#F5F8FF] px-3 py-2" />
+                  <input type="number" value={manualLen} onChange={(e) => { setManualLen(e.target.value); setSaved(false); }} className="w-full bg-[#0A1D33] border border-[#174D78] rounded-lg text-[#F5F8FF] px-3 py-2" />
                 </div>
                 <div>
                   <label className="block text-sm text-[#9EB7D3] mb-2">Eni (m)</label>
-                  <input type="number" value={manualWid} onChange={(e) => setManualWid(e.target.value)} className="w-full bg-[#0A1D33] border border-[#174D78] rounded-lg text-[#F5F8FF] px-3 py-2" />
+                  <input type="number" value={manualWid} onChange={(e) => { setManualWid(e.target.value); setSaved(false); }} className="w-full bg-[#0A1D33] border border-[#174D78] rounded-lg text-[#F5F8FF] px-3 py-2" />
                 </div>
   <div>
     <label className="block text-sm text-[#9EB7D3] mb-2">Balandlik (m)</label>
     <input type="number" value={manualHeight} onChange={(e) => setManualHeight(e.target.value)} className="w-full bg-[#0A1D33] border border-[#174D78] rounded-lg text-[#F5F8FF] px-3 py-2" />
   </div>
-                <Button className="w-full" disabled={saved} onClick={saveMeasurement}>
+                <Button className="w-full" disabled={saved || ((manualLen || manualWid) ? !hasManualDimensions : totalLength <= 0)} onClick={saveMeasurement}>
                   {saved ? 'Saqlandi' : t(language, 'saveMeasurement')}
                 </Button>
                 <Button
@@ -363,9 +350,9 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
                     setPendingCountImage(captured);
                     setActivePage('counter');
                   }}
-                  title="Tushirilgan rasmni AI Sanashda obyektlarni sanash uchun yuborish"
+                  title="Tushirilgan rasmda obyektlarni sanash"
                 >
-                  <ScanSearch className="w-4 h-4 mr-2" /> AI Sanashga yuborish
+                  <ScanSearch className="w-4 h-4 mr-2" /> Rasmni sanashga yuborish
                 </Button>
               </div>
             </Card>
@@ -414,11 +401,4 @@ const MANUAL_MEASURE_MODES = ['room', 'wall', 'floor', 'volume'] as const;
       </div>
     </div>
   );
-
-
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-    }
-  }, [stream]);
 }

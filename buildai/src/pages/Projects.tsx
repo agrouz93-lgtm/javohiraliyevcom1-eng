@@ -93,7 +93,7 @@ export function ProjectsPage({ openNewProject = false }: { openNewProject?: bool
               <div className="h-32 bg-[#102943] border border-[#174D78] rounded-xl mb-4 flex items-center justify-center"><Home className="w-12 h-12 text-[#9EB7D3]" /></div>
               <h3 className="text-[#F5F8FF] font-semibold mb-1">{project.name}</h3>
               <p className="text-[#9EB7D3] text-sm mb-4">{project.description || 'Tavsif yo\'q'}</p>
-              <div className="flex justify-between text-xs text-[#6B7C93] mb-4"><span>{project.area} mВІ</span><span>{project.roomCount} xona</span><span><Clock className="w-3 h-3 inline mr-1" /> {new Date(project.updatedAt).toLocaleDateString()}</span></div>
+              <div className="flex justify-between text-xs text-[#6B7C93] mb-4"><span>{project.area} m²</span><span>{project.roomCount} xona</span><span><Clock className="w-3 h-3 inline mr-1" /> {new Date(project.updatedAt).toLocaleDateString()}</span></div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setCurrentProject(project); setActivePage('planner'); }}><Edit className="w-3 h-3" /></Button>
                 <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); copyProject(project); }}><Copy className="w-3 h-3" /></Button>
@@ -124,11 +124,14 @@ export function ProjectsPage({ openNewProject = false }: { openNewProject?: bool
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="bg-[#0A1D33] p-4 rounded-lg border border-[#174D78]"><span className="text-[#9EB7D3] text-xs block">Maydon</span><span className="text-[#F5F8FF] font-bold">{currentProject.area} mВІ</span></div>
+              <div className="bg-[#0A1D33] p-4 rounded-lg border border-[#174D78]"><span className="text-[#9EB7D3] text-xs block">Maydon</span><span className="text-[#F5F8FF] font-bold">{currentProject.area} m²</span></div>
               <div className="bg-[#0A1D33] p-4 rounded-lg border border-[#174D78]"><span className="text-[#9EB7D3] text-xs block">Xona soni</span><span className="text-[#F5F8FF] font-bold">{currentProject.roomCount}</span></div>
               <div className="bg-[#0A1D33] p-4 rounded-lg border border-[#174D78]"><span className="text-[#9EB7D3] text-xs block">Devor uzunligi</span><span className="text-[#F5F8FF] font-bold">{currentProject.wallLength} m</span></div>
               <div className="bg-[#0A1D33] p-4 rounded-lg border border-[#174D78]"><span className="text-[#9EB7D3] text-xs block">Yaratilgan</span><span className="text-[#F5F8FF] font-bold text-xs">{new Date(currentProject.createdAt).toLocaleDateString()}</span></div>
             </div>
+            <Button variant="outline" className="mt-4" onClick={() => setActivePage('materials')}>
+              Materiallar smetasi
+            </Button>
           </div>
         )}
       </div>

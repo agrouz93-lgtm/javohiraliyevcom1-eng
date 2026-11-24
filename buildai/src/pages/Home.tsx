@@ -154,7 +154,7 @@ export function HomePage() {
                   AI Kamera bilan boshlash
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
-                <Button variant="secondary" size="lg" onClick={() => setActivePage('planner')}>
+                <Button variant="secondary" size="lg" onClick={() => setActivePage('newProject')}>
                   Loyihani yaratish
                 </Button>
               </div>
