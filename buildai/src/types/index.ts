@@ -92,7 +92,7 @@ export interface MaterialCalculation {
   type: 'brick' | 'cement' | 'sand' | 'concrete' | 'tile' | 'paint' | 'flooring' | 'roofing' | 'other';
   name: string;
   quantity: number;
-  unit: Unit | 'm²' | 'm³' | 'dona' | 'qop' | 'l';
+  unit: Unit | 'm²' | 'm³' | 'dona' | 'qop' | 'l' | 'kg' | 'paket' | 'rulon' | 'karta';
   pricePerUnit: number;
   totalPrice: number;
   wasteFactor: number; // percentage

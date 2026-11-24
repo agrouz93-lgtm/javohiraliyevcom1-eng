@@ -1,5 +1,5 @@
-import { useEffect, useMemo, Suspense } from 'react';
-import { Canvas, useThree, useLoader } from '@react-three/fiber';
+import { useEffect, useRef, useState } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import type { PlannerState, PlannerRoom, ExteriorItem } from '@/types';
@@ -15,37 +15,41 @@ const FLOOR_GAP = 0.25; // qavatlar orasidagi plita qalinligi
 
 /* ---------------- real textures ---------------- */
 
-function useRealTextures() {
-  const [grass, brick, concrete] = useLoader(
-    THREE.TextureLoader,
-    [grassUrl, brickUrl, concreteUrl] as unknown as string[]
-  );
+type Textures = { grass?: THREE.Texture; brick?: THREE.Texture; concrete?: THREE.Texture };
 
-  return useMemo(() => {
-    const setup = (t: THREE.Texture, rx: number, ry: number) => {
-      const c = t.clone();
-      c.wrapS = c.wrapT = THREE.RepeatWrapping;
-      c.repeat.set(rx, ry);
-      c.colorSpace = THREE.SRGBColorSpace;
-      c.anisotropy = 4;
-      c.needsUpdate = true;
-      return c;
+function useRealTextures() {
+  const [textures, setTextures] = useState<Textures>({});
+  useEffect(() => {
+    let mounted = true;
+    const loader = new THREE.TextureLoader();
+    const sources = [
+      ['grass', grassUrl, 9, 9], ['brick', brickUrl, 2, 1], ['concrete', concreteUrl, 2, 2],
+    ] as const;
+    const loaded = sources.map(([key, url, x, y]) => loader.load(url, (texture) => {
+      if (!mounted) return;
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(x, y);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = 2;
+      setTextures((previous) => ({ ...previous, [key]: texture }));
+    }, undefined, () => {
+      // The solid-color model remains usable if a texture cannot load.
+    }));
+    return () => {
+      mounted = false;
+      loaded.forEach((texture) => texture.dispose());
     };
-    return {
-      grass: setup(grass, 9, 9),
-      brick: setup(brick, 2, 1),
-      concrete: setup(concrete, 2, 2),
-    };
-  }, [grass, brick, concrete]);
+  }, []);
+  return textures;
 }
 
-function Ground({ tex, night }: { tex: THREE.Texture; night: boolean }) {
+function Ground({ tex, night }: { tex?: THREE.Texture; night: boolean }) {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
       <planeGeometry args={[70, 70]} />
       <meshStandardMaterial
-        map={tex}
-        color={night ? '#3E5F43' : '#FFFFFF'}
+        map={tex ?? null}
+        color={night ? '#3E5F43' : tex ? '#FFFFFF' : '#54844E'}
         roughness={1}
       />
     </mesh>
@@ -62,7 +66,9 @@ const VIEWS: Record<string, [number, number, number]> = {
 };
 
 function Rig({ view, zoomTick, levels = 1 }: { view: string; zoomTick: number; levels?: number }) {
-  const { camera, controls } = useThree() as any;
+  const camera = useThree((state) => state.camera);
+  const controls = useThree((state) => state.controls) as import('three-stdlib').OrbitControls | null;
+  const previousZoom = useRef(zoomTick);
 
   useEffect(() => {
     if (!controls) return;
@@ -73,19 +79,20 @@ function Rig({ view, zoomTick, levels = 1 }: { view: string; zoomTick: number; l
     controls.target.set(0, Math.max(1, (levels * WALL_H) / 2), 0);
     controls.update();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, levels]);
+  }, [camera, controls, view, levels]);
 
   useEffect(() => {
-    if (!controls || zoomTick === 0) return;
+    if (!controls || zoomTick === previousZoom.current) return;
+    const delta = zoomTick - previousZoom.current;
+    previousZoom.current = zoomTick;
     const dir = camera.position.clone().sub(controls.target);
     const len = dir.length();
-    const next = zoomTick > 0 ? len * 0.78 : len * 1.28;
-    if (next < 6 || next > 80) return;
-    dir.setLength(next);
+    const next = len * 0.8 ** delta;
+    dir.setLength(THREE.MathUtils.clamp(next, 6, 80));
     camera.position.copy(controls.target).add(dir);
     controls.update();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoomTick]);
+  }, [camera, controls, zoomTick]);
 
   return null;
 }
@@ -100,7 +107,7 @@ function Room({
 }: {
   room: PlannerRoom;
   state: PlannerState;
-  tex: { brick: THREE.Texture; concrete: THREE.Texture };
+  tex: Textures;
   offset?: number;
 }) {
   const { w, d, x, z } = room;
@@ -108,7 +115,7 @@ function Room({
   const walls: JSX.Element[] = [];
 
   const wallMat = (
-    <meshStandardMaterial map={tex.brick} color={state.wallColor} roughness={0.85} />
+    <meshStandardMaterial map={tex.brick ?? null} color={state.wallColor} roughness={0.85} />
   );
 
   walls.push(
@@ -166,7 +173,7 @@ function Room({
       <mesh position={[x, 0.05 + offset, z]} receiveShadow>
         <boxGeometry args={[w, 0.1, d]} />
         <meshStandardMaterial
-          map={tex.concrete}
+          map={tex.concrete ?? null}
           color={state.floorColor}
           roughness={0.95}
         />
@@ -174,7 +181,7 @@ function Room({
       {offset > 0 && (
         <mesh position={[x, offset - FLOOR_GAP / 2, z]}>
           <boxGeometry args={[w + 0.2, FLOOR_GAP, d + 0.2]} />
-          <meshStandardMaterial map={tex.concrete} color="#B9C2CE" roughness={0.95} />
+          <meshStandardMaterial map={tex.concrete ?? null} color="#B9C2CE" roughness={0.95} />
         </mesh>
       )}
       {walls}
@@ -330,19 +337,19 @@ export interface HouseSceneProps {
   state: PlannerState;
   view: string;
   zoomTick: number;
+  onFailure: () => void;
 }
 
-export function HouseScene({ state, view, zoomTick }: HouseSceneProps) {
+export function HouseScene({ state, view, zoomTick, onFailure }: HouseSceneProps) {
   const night = state.night;
   return (
     <Canvas
-      dpr={[1, 1.8]}
+      frameloop="demand"
+      dpr={[1, 1.35]}
       camera={{ position: [16, 12, 16], fov: 50, near: 0.1, far: 400 }}
-      gl={{ antialias: true }}
+      gl={{ antialias: false }}
     >
-      <Suspense fallback={null}>
-        <SceneContent state={state} view={view} zoomTick={zoomTick} night={night} />
-      </Suspense>
+      <SceneContent state={state} view={view} zoomTick={zoomTick} night={night} onFailure={onFailure} />
     </Canvas>
   );
 }
@@ -352,8 +359,15 @@ function SceneContent({
   view,
   zoomTick,
   night,
+  onFailure,
 }: HouseSceneProps & { night: boolean }) {
   const tex = useRealTextures();
+  const canvas = useThree((state) => state.gl.domElement);
+  useEffect(() => {
+    const handleContextLoss = () => onFailure();
+    canvas.addEventListener('webglcontextlost', handleContextLoss);
+    return () => canvas.removeEventListener('webglcontextlost', handleContextLoss);
+  }, [canvas, onFailure]);
 
   return (
     <>

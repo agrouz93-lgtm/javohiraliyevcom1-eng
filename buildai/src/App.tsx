@@ -32,7 +32,9 @@ const PAGES: Record<string, React.ComponentType<any>> = {
 
 export default function App() {
   const { theme } = useAppStore();
-  const [activePage, setActivePage] = useState('splash');
+  const [activePage, setActivePage] = useState(() =>
+    /^\/kalkulyator\/?$/.test(window.location.pathname) ? 'calculator' : 'splash'
+  );
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -51,7 +53,10 @@ export default function App() {
   }, [activePage, setActivePage]);
 
   const PageComponent = PAGES[activePage] || HomePage;
-  const pageProps = activePage === 'newProject' ? { openNewProject: true } : {};
+  const pageProps = activePage === 'newProject' ? { openNewProject: true }
+    : activePage === 'calculator' && /^\/kalkulyator\/?$/.test(window.location.pathname)
+      ? { initialMode: 'construction' }
+      : {};
 
   return (
     <NavProvider activePage={activePage} onPageChange={setActivePage}>

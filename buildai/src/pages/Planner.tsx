@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { Component, lazy, Suspense, useState, useEffect, useRef, type ReactNode } from 'react';
 import { useAppStore } from '@/store';
 import { t } from '@/translations';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { HouseScene } from '@/components/three/HouseScene';
 import {
   Save, Plus, Trash2, RotateCcw, Maximize2, Moon, Sun,
   Minus, House, Grid2x2, Box, Package,
@@ -11,6 +10,24 @@ import {
 import type { PlannerState, PlannerRoom, ExteriorItem, ExteriorKind, Project } from '@/types';
 import { SHOP_ITEMS } from '@/data/products';
 import { Car as CarIcon } from 'lucide-react';
+
+const HouseScene = lazy(() => import('@/components/three/HouseScene').then(({ HouseScene }) => ({ default: HouseScene })));
+
+class SceneBoundary extends Component<{ onFailure: () => void; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onFailure();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 const ROOM_TYPES: { label: string; w: number; d: number }[] = [
   { label: 'Mehmonxona', w: 5, d: 4 },
@@ -81,7 +98,9 @@ function makeHouse(n: number): PlannerState {
 export function PlannerPage() {
   const { language, currentProject, projects, addProject, updateProject, orders } = useAppStore();
   const [state, setState] = useState<PlannerState>(INITIAL_STATE);
-  const [mode, setMode] = useState<'3d' | '2d'>('3d');
+  const [mode, setMode] = useState<'3d' | '2d'>(() => window.matchMedia('(pointer: coarse), (max-width: 767px)').matches ? '2d' : '3d')
+  const [sceneFailed, setSceneFailed] = useState(false);
+  const returnToPlan = () => { setSceneFailed(true); setMode('2d'); };
   const [camView, setCamView] = useState('iso');
   const [zoomTick, setZoomTick] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -101,11 +120,12 @@ export function PlannerPage() {
     if (loadedIdRef.current === id) return;
     loadedIdRef.current = id;
     if (currentProject?.planner) {
-      setState({ ...currentProject.planner, projectName: currentProject.name });
-      setSelected(null);
-    } else if (currentProject) {
-      setState((prev) => ({ ...prev, projectName: currentProject.name }));
+      setState({ ...INITIAL_STATE, ...currentProject.planner, projectName: currentProject.name });
+    } else {
+      setState({ ...INITIAL_STATE, projectName: currentProject?.name ?? INITIAL_STATE.projectName });
     }
+    setSelected(null);
+    setActiveFloor(1);
   }, [currentProject]);
 
   const addRoom = (label: string) => {
@@ -229,12 +249,10 @@ export function PlannerPage() {
   };
 
   const svgPoint = (e: React.PointerEvent) => {
-    const rect = svgRef.current?.getBoundingClientRect();
-    if (!rect) return { mx: 0, mz: 0 };
-    return {
-      mx: ((e.clientX - rect.left) / rect.width) * 40 - 20,
-      mz: ((e.clientY - rect.top) / rect.height) * 40 - 20,
-    };
+    const transform = svgRef.current?.getScreenCTM();
+    if (!transform) return { mx: 0, mz: 0 };
+    const point = new DOMPoint(e.clientX, e.clientY).matrixTransform(transform.inverse());
+    return { mx: point.x, mz: point.y };
   };
 
   const onRoomDown = (e: React.PointerEvent, room: PlannerRoom) => {
@@ -298,7 +316,8 @@ export function PlannerPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setMode('3d')}
+              aria-pressed={mode === '3d'}
+            onClick={() => { setSceneFailed(false); setMode('3d'); }}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 mode === '3d' ? 'bg-[#1677FF] text-white' : 'bg-[#102943] text-[#9EB7D3] border border-[#174D78] hover:text-[#F5F8FF]'
               }`}
@@ -306,7 +325,8 @@ export function PlannerPage() {
               <Box className="w-4 h-4" /> 3D
             </button>
             <button
-              onClick={() => setMode('2d')}
+              aria-pressed={mode === '2d'}
+            onClick={() => setMode('2d')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 mode === '2d' ? 'bg-[#1677FF] text-white' : 'bg-[#102943] text-[#9EB7D3] border border-[#174D78] hover:text-[#F5F8FF]'
               }`}
@@ -320,6 +340,7 @@ export function PlannerPage() {
         </div>
 
         {/* name + save */}
+        {sceneFailed && <p className="mb-3 text-sm text-[#9EB7D3]" role="status">Bu qurilmada 3D ko‘rinish ochilmadi. Loyihani 2D rejimida tahrirlash mumkin.</p>}
         <div className="flex flex-col sm:flex-row gap-2 mb-3">
           <input
             value={state.projectName}
@@ -342,7 +363,11 @@ export function PlannerPage() {
               className="relative h-[420px] md:h-[560px] rounded-2xl overflow-hidden border border-[#174D78] bg-[#050D18]"
             >
               {mode === '3d' ? (
-                <HouseScene state={state} view={camView} zoomTick={zoomTick} />
+                <SceneBoundary onFailure={returnToPlan}>
+                  <Suspense fallback={<p className="p-4 text-sm text-[#9EB7D3]" role="status">3D ko‘rinish yuklanmoqda…</p>}>
+                    <HouseScene state={state} view={camView} zoomTick={zoomTick} onFailure={returnToPlan} />
+                  </Suspense>
+                </SceneBoundary>
               ) : (
                 <svg
                   ref={svgRef}
@@ -350,7 +375,7 @@ export function PlannerPage() {
                   className="w-full h-full touch-none select-none"
                   onPointerMove={onRoomMove}
                   onPointerUp={() => { dragRef.current = null; }}
-                  onPointerLeave={() => { dragRef.current = null; }}
+                  onPointerCancel={() => { dragRef.current = null; }}
                 >
                   <rect x={-20} y={-20} width={40} height={40} fill="#0A1D33" />
                   {gridLines.map((i) => (

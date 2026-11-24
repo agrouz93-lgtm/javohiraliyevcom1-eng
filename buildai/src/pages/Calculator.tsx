@@ -2,10 +2,11 @@ import { useState, useCallback } from 'react';
 import { useAppStore } from '@/store';
 import { t } from '@/translations';
 import { Card } from '@/components/ui/Card';
+import { ConstructionCalculator } from '@/components/ConstructionCalculator';
 import { Button } from '@/components/ui/Button';
 import { Lock, Unlock, FileText, Save, Trash2, Plus, Settings as SettingsIcon } from 'lucide-react';
 
-type CalcMode = 'simple' | 'scientific' | 'secret';
+type CalcMode = 'simple' | 'scientific' | 'construction' | 'secret';
 
 interface Note {
   id: string;
@@ -32,27 +33,26 @@ function tokenize(expr: string): Token[] {
   while (i < expr.length) {
     const ch = expr[i];
     if (ch === ' ') { i += 1; continue; }
-    if (ch === '+' || ch === '-' || ch === '*' || ch === '/' || ch === '%' || ch === '(' || ch === ')') {
+    if (ch === '+' || ch === '-' || ch === '*' || ch === '/' || ch === '%' || ch === '(' || ch === ')' || ch === ',') {
       tokens.push({ type: 'op', value: ch });
       i += 1;
       continue;
     }
-    if (ch === '.') { tokens.push({ type: 'number', value: '0.' }); i += 1; continue; }
     if (/[0-9.]/.test(ch)) {
-      let num = '';
-      while (i < expr.length && /[0-9.]/.test(expr[i])) { num += expr[i]; i += 1; }
-      if (!/^\d+(\.\d+)?$/.test(num) && !/^\d*\.?\d+$/.test(num)) throw new Error('Noto\'g\'ri son');
-      tokens.push({ type: 'number', value: num });
+      const number = expr.slice(i).match(/^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:e[+-]?[0-9]+)?/i)?.[0];
+      if (!number) throw new Error("Noto‘g‘ri son");
+      tokens.push({ type: 'number', value: number });
+      i += number.length;
       continue;
     }
     if (ch === 'π') { tokens.push({ type: 'const', value: 'PI' }); i += 1; continue; }
-    if (ch === 'e') { tokens.push({ type: 'const', value: 'E' }); i += 1; continue; }
     if (/[a-zA-Z]/.test(ch)) {
       let name = '';
       while (i < expr.length && /[a-zA-Zπ]/.test(expr[i])) { name += expr[i]; i += 1; }
       while (i < expr.length && /[0-9]/.test(expr[i])) { name += expr[i]; i += 1; }
       const normalized = name.replace(/π/g, '').toLowerCase();
       if (normalized === 'pi') { tokens.push({ type: 'const', value: 'PI' }); }
+      else if (normalized === 'ans') { tokens.push({ type: 'const', value: 'ANS' }); }
       else if (normalized === 'e') { tokens.push({ type: 'const', value: 'E' }); }
       else if (FUNC_NAMES.has(normalized)) { tokens.push({ type: 'func', value: normalized }); }
       else throw new Error('Noto\'g\'ri funksiya');
@@ -65,6 +65,10 @@ function tokenize(expr: string): Token[] {
 }
 
 function applyFunction(name: string, args: number[]): number {
+  const validCount = name === 'pow' ? args.length === 2
+    : name === 'min' || name === 'max' ? args.length > 0
+    : args.length === 1;
+  if (!validCount) throw new Error('Funksiya argumentlari soni xato');
   switch (name) {
     case 'sin': return Math.sin(args[0]);
     case 'cos': return Math.cos(args[0]);
@@ -118,13 +122,8 @@ function evaluate(expr: string): number {
     while (peek().value === '*' || peek().value === '/') {
       const op = next().value;
       const right = parseFactor();
-      if (op === '*') left *= right;
-      else if (op === '/') {
-        if (right === 0) throw new Error('Nolga bo\'lish imkoni yo\'q');
-        left /= right;
-      } else {
-        left = (left / 100) * right;
-      }
+      if (op === '/' && right === 0) throw new Error("Nolga bo‘lish mumkin emas");
+      left = op === '*' ? left * right : left / right;
     }
     return left;
   };
@@ -132,21 +131,21 @@ function evaluate(expr: string): number {
   const parseFactor = (): number => {
     if (peek().value === '-') { next(); return -parseFactor(); }
     if (peek().value === '+') { next(); return parseFactor(); }
-    return parsePrimary();
+    const value = parsePrimary();
+    return consume('%') ? value / 100 : value;
   };
 
   const parsePrimary = (): number => {
     const tok = peek();
     if (tok.type === 'number') {
       next();
-      let val = parseFloat(tok.value);
-      if (peek().value === '%') { next(); val = val / 100; }
-      return val;
+      return Number(tok.value);
     }
     if (tok.type === 'const') {
       next();
       if (tok.value === 'PI') return Math.PI;
       if (tok.value === 'E') return Math.E;
+      if (tok.value === 'ANS') return ANS_MEM;
       throw new Error('Unknown constant');
     }
     if (tok.type === 'func') {
@@ -180,9 +179,9 @@ function safeEval(expr: string): number {
 
 let ANS_MEM = 0;
 
-export function CalculatorPage() {
+export function CalculatorPage({ initialMode = 'simple' }: { initialMode?: CalcMode } = {}) {
   const { language, appPin, setAppPin, verifyPin } = useAppStore();
-  const [mode, setMode] = useState<CalcMode>('simple');
+  const [mode, setMode] = useState<CalcMode>(initialMode);
   const [display, setDisplay] = useState('0');
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -216,25 +215,32 @@ export function CalculatorPage() {
 
   const backspace = () => {
     setError(null);
+    setResult(null);
     setDisplay((prev) => (prev.length <= 1 ? '0' : prev.slice(0, -1)));
   };
 
   const append = (ch: string) => {
     setError(null);
-    if (display === '0' && ch !== '.') setDisplay(ch);
-    else setDisplay((prev) => prev + ch);
+    setDisplay((prev) => {
+      const startsExpression = /^[0-9.(πa-z]/i.test(ch);
+      const current = result !== null && startsExpression ? '0' : prev;
+      if (current === '0' && startsExpression && ch !== '.') return ch;
+      return current + ch;
+    });
+    setResult(null);
   };
 
   const toggleSign = () => {
     setError(null);
-    setDisplay((prev) => (prev.startsWith('-') ? prev.slice(1) : prev === '0' ? '0' : '-' + prev));
+    setResult(null);
+    setDisplay((prev) => prev === '0' ? prev : prev.startsWith('-(') && prev.endsWith(')') ? prev.slice(2, -1) : `-(${prev})`);
   };
 
   const calculate = useCallback(() => {
     try {
       setError(null);
       const val = safeEval(display);
-      const resStr = Number.isInteger(val) ? val.toString() : val.toFixed(6).replace(/\.?0+$/, '');
+      const resStr = Number(val.toPrecision(15)).toString();
       ANS_MEM = val;
       setResult(resStr);
       addToHistory(display, resStr);
@@ -297,6 +303,7 @@ export function CalculatorPage() {
   const tabs = [
     { key: 'simple' as CalcMode, label: t(language, 'simpleCalc') },
     { key: 'scientific' as CalcMode, label: t(language, 'scientificCalc') },
+    { key: 'construction' as CalcMode, label: { uz: 'Qurilish smetasi', ru: 'Смета', en: 'Construction estimate' }[language] },
     { key: 'secret' as CalcMode, label: t(language, 'secretCalc') },
   ];
 
@@ -308,21 +315,16 @@ export function CalculatorPage() {
     ['+/-', '0', '.', '='],
   ];
 
-  const sciRows = [
-    ['sin', 'cos', 'tan', 'sqrt'],
-    ['log', 'ln', 'pow', 'π'],
-    ['ans', '(', ')', 'C'],
-  ];
-
   return (
     <div className="min-h-screen bg-[#061426]">
-      <div className="max-w-xl mx-auto px-6 py-6">
-        <div className="flex items-center justify-between mb-2">
+      <div className={`mx-auto px-1 sm:px-6 py-6 ${mode === 'construction' ? 'max-w-5xl' : 'max-w-xl'}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
           <h1 className="text-xl font-bold text-[#F5F8FF]">{t(language, 'calculator')}</h1>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {tabs.map((tab) => (
               <Button
                 key={tab.key}
+                aria-pressed={mode === tab.key}
                 variant={mode === tab.key ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => {
@@ -336,6 +338,8 @@ export function CalculatorPage() {
             ))}
           </div>
         </div>
+
+        {mode === 'construction' && <ConstructionCalculator />}
 
         {mode === 'secret' && !appPin && !creatingPin && !secretUnlocked && (
           <div className="max-w-md mx-auto mt-6">
@@ -413,12 +417,12 @@ export function CalculatorPage() {
           </div>
         )}
 
-        {!mode.startsWith('secret') || secretUnlocked ? (
+        {(mode === 'simple' || mode === 'scientific' || (mode === 'secret' && secretUnlocked)) ? (
           <div className={`max-w-xl mx-auto px-6 ${mode === 'secret' ? 'mt-6' : 'mt-8'}`}>
             <div className="bg-[#0A1D33] border border-[#174D78] rounded-2xl p-6 min-h-[220px] flex flex-col justify-between shadow-xl shadow-[#1677FF]/10">
               <div className="text-right">
                 <div className="text-[#6B7C93] text-xs mb-1 font-mono">{history.length ? history[0].expr : ''}</div>
-                <div className="text-4xl font-bold text-[#F5F8FF] font-mono mb-2">{display}</div>
+                <div className="text-4xl font-bold text-[#F5F8FF] font-mono mb-2 break-all" data-testid="calculator-display">{display}</div>
                 {error ? (
                   <div className="text-[#FF6B6B] text-sm mb-4">{error}</div>
                 ) : (
@@ -448,9 +452,9 @@ export function CalculatorPage() {
                   ))
                 )}
                 {mode === 'scientific' && [
-                  'sin', 'cos', 'tan', 'sqrt', 'log', 'ln', 'pow', 'ans', '(', ')',
+                  'sin', 'cos', 'tan', 'sqrt', 'log', 'ln', 'pow', 'ans', 'π', '(', ')', ',',
                 ].map((f) => (
-                  <Button key={f} variant="outline" size="sm" onClick={() => append(f + (f === 'ans' ? '' : '('))}>
+                  <Button key={f} variant="outline" size="sm" onClick={() => append(FUNC_NAMES.has(f) ? `${f}(` : f)}>
                     {f}
                   </Button>
                 ))}
@@ -467,7 +471,7 @@ export function CalculatorPage() {
                 </div>
                 <div className="space-y-1">
                   {history.map((h, i) => (
-                    <Card key={i} className="p-3" onClick={() => setDisplay(h.expr)}>
+                    <Card key={i} className="p-3" onClick={() => { setDisplay(h.expr); setResult(null); setError(null); }}>
                       <div className="flex justify-between text-sm">
                         <span className="text-[#9EB7D3]">{h.expr}</span>
                         <span className="text-[#22C99A] font-mono">{h.res}</span>
