@@ -6,7 +6,7 @@ import { useAppStore } from '@/store';
 
 type Unit = 'm' | 'm²' | 'm³' | 'kg' | 'l' | 'dona' | 'qop' | 'paket' | 'rulon' | 'karta';
 type Item = { name: string; unit: Unit; quantity: number };
-type Field = { label: string; initial: number; optional?: boolean; integer?: boolean; options?: string[] };
+type Field = { label: string; initial: number; optional?: boolean; integer?: boolean; options?: string[]; visible?: (values: string[]) => boolean };
 type Job = { name: string; fields?: Field[]; materials: (area: number, values: number[], reserve: number) => Item[] };
 
 const discreteUnits: Unit[] = ['dona', 'qop', 'paket', 'rulon', 'karta'];
@@ -16,6 +16,7 @@ const item = (name: string, unit: Unit, value: number): Item => {
 };
 const primer = (area: number) => item('Gruntovka', 'l', area * 0.2);
 const perimeter = { label: 'Perimetr (m), ixtiyoriy', initial: 0, optional: true };
+const mixesOnSite = (values: string[]) => values[1] === '1';
 const layers = { label: 'Qatlam soni', initial: 2, integer: true };
 
 const groups: { name: string; jobs: Job[] }[] = [
@@ -104,9 +105,9 @@ const groups: { name: string; jobs: Job[] }[] = [
       name: 'Beton va poydevor',
       fields: [{ label: 'Qalinlik yoki chuqurlik (sm)', initial: 10 },
         { label: 'Beton turi', initial: 0, options: ['Tayyor beton', 'Loyiha tarkibi bo‘yicha aralashtirish'] },
-        { label: 'Sement (kg/m³)', initial: 0, optional: true },
-        { label: 'Qum (kg/m³)', initial: 0, optional: true },
-        { label: 'Chaqiq tosh (kg/m³)', initial: 0, optional: true }],
+        { label: 'Sement (kg/m³)', initial: 0, optional: true, visible: mixesOnSite },
+        { label: 'Qum (kg/m³)', initial: 0, optional: true, visible: mixesOnSite },
+        { label: 'Chaqiq tosh (kg/m³)', initial: 0, optional: true, visible: mixesOnSite }],
       materials: (area, [depth, mix, cement, sand, gravel], reserve) => {
         const volume = area * depth / 100 * reserve;
         if (!mix) return [item('Tayyor beton', 'm³', volume)];
@@ -139,8 +140,8 @@ const inputStyle = 'block w-full rounded-lg border border-[#174D78] bg-[#0A1D33]
 export function ConstructionCalculator() {
   const [job, setJob] = useState<Job>(groups[0].jobs[0]);
   return (
-    <div className="mt-5 grid gap-4 lg:grid-cols-[16rem_1fr]">
-      <Card className="p-4">
+    <div className="mt-2 grid gap-2 lg:grid-cols-[14rem_1fr] lg:items-start">
+      <Card padded={false} className="!p-3">
         <label htmlFor="construction-job" className="mb-2 block text-sm font-semibold text-[#F5F8FF]">Ish turi</label>
         <select id="construction-job" className={inputStyle} value={job.name}
           onChange={(event) => {
@@ -160,6 +161,9 @@ export function ConstructionCalculator() {
 }
 
 function Estimate({ job }: { job: Job }) {
+  const [useDimensions, setUseDimensions] = useState(false);
+  const [length, setLength] = useState('');
+  const [width, setWidth] = useState('');
   const [area, setArea] = useState('');
   const [waste, setWaste] = useState('10');
   const [values, setValues] = useState(() => (job.fields ?? []).map((field) => String(field.initial)));
@@ -167,13 +171,16 @@ function Estimate({ job }: { job: Job }) {
   const [saved, setSaved] = useState(false);
   const { currentProject, projects, setCurrentProject, updateProject } = useAppStore();
   const { setActivePage } = useNav();
-  const valid = Number.isFinite(Number(area)) && Number(area) > 0 && values.every((text, index) => {
+  const measuredArea = useDimensions && Number(length) > 0 && Number(width) > 0 ? Number(length) * Number(width) : 0;
+  const effectiveArea = useDimensions ? measuredArea : Number(area);
+  const valid = Number.isFinite(effectiveArea) && effectiveArea > 0 && values.every((text, index) => {
     const value = Number(text);
     const field = job.fields?.[index];
+    if (field?.visible && !field.visible(values)) return true;
     if (field?.options) return !!field.options[value];
     return Number.isFinite(value) && (field?.optional ? value >= 0 : value > 0) && (!field?.integer || Number.isInteger(value));
   });
-  const items = valid ? job.materials(Number(area), values.map(Number), 1 + Number(waste) / 100) : [];
+  const items = valid ? job.materials(effectiveArea, values.map(Number), 1 + Number(waste) / 100) : [];
   const quantitiesValid = items.every((material) => Number.isFinite(material.quantity));
   const lines = quantitiesValid ? items.filter((material) => material.quantity > 0).map((material) => {
     const price = Number(prices[material.name] ?? '');
@@ -204,19 +211,40 @@ function Estimate({ job }: { job: Job }) {
   };
 
   return (
-    <Card className="p-4 sm:p-6">
-      <h2 className="mb-4 text-lg font-semibold text-[#F5F8FF]">{job.name}</h2>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm text-[#9EB7D3]">Maydon (m²)
-          <input className={inputStyle} type="number" inputMode="decimal" min="0" step="any" value={area}
-            onChange={(event) => { setArea(event.target.value); setSaved(false); }} />
-        </label>
+    <Card padded={false} className="!p-3 sm:!p-4">
+      <h2 className="mb-2 text-base font-semibold text-[#F5F8FF]">{job.name}</h2>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="col-span-2">
+          <label className="mb-2 inline-flex min-h-8 items-center gap-2 text-sm text-[#9EB7D3]">
+            <input type="checkbox" checked={useDimensions} onChange={(event) => { setUseDimensions(event.target.checked); setSaved(false); }}
+              className="h-4 w-4 accent-[#1677FF]" />
+            Maydonni uzunlik va enidan hisoblash
+          </label>
+          {useDimensions ? (
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-sm text-[#9EB7D3]">Uzunlik (m)
+                <input className={inputStyle} type="number" inputMode="decimal" min="0" step="any" value={length}
+                  onChange={(event) => { setLength(event.target.value); setSaved(false); }} />
+              </label>
+              <label className="text-sm text-[#9EB7D3]">Eni (m)
+                <input className={inputStyle} type="number" inputMode="decimal" min="0" step="any" value={width}
+                  onChange={(event) => { setWidth(event.target.value); setSaved(false); }} />
+              </label>
+              {measuredArea > 0 && <output className="col-span-2 text-xs text-[#29B6FF]">Maydon: {format.format(measuredArea)} m²</output>}
+            </div>
+          ) : (
+            <label className="block text-sm text-[#9EB7D3]">Maydon (m²)
+              <input className={inputStyle} type="number" inputMode="decimal" min="0" step="any" value={area}
+                onChange={(event) => { setArea(event.target.value); setSaved(false); }} />
+            </label>
+          )}
+        </div>
         <label className="text-sm text-[#9EB7D3]">Zaxira
           <select className={inputStyle} value={waste} onChange={(event) => { setWaste(event.target.value); setSaved(false); }}>
             {[0, 5, 10, 15, 20].map((value) => <option key={value} value={value}>{value}%</option>)}
           </select>
         </label>
-        {job.fields?.map((field, index) => (
+        {job.fields?.map((field, index) => (!field.visible || field.visible(values)) && (
           <label key={field.label} className="text-sm text-[#9EB7D3]">{field.label}
             {field.options ? (
               <select className={inputStyle} value={values[index]} onChange={(event) => changeField(index, event.target.value)}>
@@ -231,10 +259,10 @@ function Estimate({ job }: { job: Job }) {
       </div>
 
       {lines.length > 0 ? (
-        <div className="mt-5">
+        <div className="mt-3">
           <ul className="divide-y divide-[#174D78]">
             {lines.map((line) => (
-              <li key={line.name} className="grid grid-cols-2 items-center gap-2 py-3 text-sm sm:grid-cols-3">
+              <li key={line.name} className="grid grid-cols-2 items-center gap-2 py-2 text-sm sm:grid-cols-3">
                 <div className="font-medium text-[#F5F8FF]">{line.name}<span className="block text-[#9EB7D3]">{format.format(line.quantity)} {line.unit}</span></div>
                 <label className="text-xs text-[#9EB7D3]">Birlik narxi (so‘m)
                   <input aria-label={`${line.name} narxi`} className={inputStyle} type="number" inputMode="decimal" min="0" step="any"
@@ -250,7 +278,7 @@ function Estimate({ job }: { job: Job }) {
           <p className="mt-3 text-right font-semibold text-[#29B6FF]" aria-live="polite">
             {invalidPrice ? 'Narxlarni tekshiring' : `${missingPrice ? 'Kiritilgan narxlar jami' : 'Jami'}: ${format.format(total)} so‘m`}
           </p>
-          <p className="my-4 text-sm text-[#9EB7D3]">Miqdorlar taxminiy. Sarf me’yorini loyiha va material qadoqlaridan tekshiring. Narxi kiritilmagan material jami narxga qo‘shilmaydi.</p>
+          <p className="my-2 text-xs text-[#9EB7D3]">Miqdorlar taxminiy. Sarf me’yorini loyiha va material qadoqlaridan tekshiring. Narxi kiritilmagan material jami narxga qo‘shilmaydi.</p>
           {currentProject ? (
             <Button onClick={save} disabled={invalidPrice || saved}>{saved ? 'Smeta saqlandi' : `${currentProject.name} loyihasiga saqlash`}</Button>
           ) : projects.length ? (
@@ -266,7 +294,7 @@ function Estimate({ job }: { job: Job }) {
             <Button variant="outline" onClick={() => setActivePage('newProject')}>Smeta saqlash uchun loyiha yarating</Button>
           )}
         </div>
-      ) : <p className="mt-4 text-sm text-[#9EB7D3]" role="status">{area ? 'O‘lcham va sarf qiymatlarini tekshiring.' : 'Hisoblash uchun maydonni kiriting.'}</p>}
+      ) : <p className="mt-4 text-sm text-[#9EB7D3]" role="status">{area || length || width ? 'O‘lcham va sarf qiymatlarini tekshiring.' : 'Hisoblash uchun maydonni kiriting.'}</p>}
     </Card>
   );
 }

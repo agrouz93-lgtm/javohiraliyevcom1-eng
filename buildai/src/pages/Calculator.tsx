@@ -4,7 +4,7 @@ import { t } from '@/translations';
 import { Card } from '@/components/ui/Card';
 import { ConstructionCalculator } from '@/components/ConstructionCalculator';
 import { Button } from '@/components/ui/Button';
-import { Lock, Unlock, FileText, Save, Trash2, Plus, Settings as SettingsIcon } from 'lucide-react';
+import { Lock, Unlock, Copy, Plus, Trash2 } from 'lucide-react';
 
 type CalcMode = 'simple' | 'scientific' | 'construction' | 'secret';
 
@@ -185,6 +185,7 @@ export function CalculatorPage({ initialMode = 'simple' }: { initialMode?: CalcM
   const [display, setDisplay] = useState('0');
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState<{ expr: string; res: string }[]>([]);
   const [secretUnlocked, setSecretUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState('');
@@ -208,6 +209,7 @@ export function CalculatorPage({ initialMode = 'simple' }: { initialMode?: CalcM
   };
 
   const clear = () => {
+    setCopied(false);
     setDisplay('0');
     setResult(null);
     setError(null);
@@ -221,6 +223,7 @@ export function CalculatorPage({ initialMode = 'simple' }: { initialMode?: CalcM
 
   const append = (ch: string) => {
     setError(null);
+    setCopied(false);
     setDisplay((prev) => {
       const startsExpression = /^[0-9.(πa-z]/i.test(ch);
       const current = result !== null && startsExpression ? '0' : prev;
@@ -238,7 +241,9 @@ export function CalculatorPage({ initialMode = 'simple' }: { initialMode?: CalcM
 
   const calculate = useCallback(() => {
     try {
+      if (display.length > 160) throw new Error('Ifoda juda uzun');
       setError(null);
+      setCopied(false);
       const val = safeEval(display);
       const resStr = Number(val.toPrecision(15)).toString();
       ANS_MEM = val;
@@ -317,16 +322,17 @@ export function CalculatorPage({ initialMode = 'simple' }: { initialMode?: CalcM
 
   return (
     <div className="min-h-screen bg-[#061426]">
-      <div className={`mx-auto px-1 sm:px-6 py-6 ${mode === 'construction' ? 'max-w-5xl' : 'max-w-xl'}`}>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+      <div className={`mx-auto px-1 sm:px-4 py-4 ${mode === 'construction' ? 'max-w-5xl' : 'max-w-xl'}`}>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-xl font-bold text-[#F5F8FF]">{t(language, 'calculator')}</h1>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 rounded-xl border border-[#174D78] bg-[#0A1D33] p-1">
             {tabs.map((tab) => (
               <Button
                 key={tab.key}
                 aria-pressed={mode === tab.key}
-                variant={mode === tab.key ? 'primary' : 'outline'}
+                variant={mode === tab.key ? 'primary' : 'ghost'}
                 size="sm"
+                className="min-h-9 px-2 sm:px-3"
                 onClick={() => {
                   setMode(tab.key);
                   setError(null);
@@ -418,11 +424,32 @@ export function CalculatorPage({ initialMode = 'simple' }: { initialMode?: CalcM
         )}
 
         {(mode === 'simple' || mode === 'scientific' || (mode === 'secret' && secretUnlocked)) ? (
-          <div className={`max-w-xl mx-auto px-6 ${mode === 'secret' ? 'mt-6' : 'mt-8'}`}>
-            <div className="bg-[#0A1D33] border border-[#174D78] rounded-2xl p-6 min-h-[220px] flex flex-col justify-between shadow-xl shadow-[#1677FF]/10">
+          <div className="mx-auto max-w-xl">
+            <div className="rounded-xl border border-[#174D78] bg-[#0A1D33] px-3 py-2.5 sm:px-4">
               <div className="text-right">
                 <div className="text-[#6B7C93] text-xs mb-1 font-mono">{history.length ? history[0].expr : ''}</div>
-                <div className="text-4xl font-bold text-[#F5F8FF] font-mono mb-2 break-all" data-testid="calculator-display">{display}</div>
+                <div className="flex items-center gap-2">
+                  {mode !== 'secret' && result !== null && navigator.clipboard && (
+                    <Button variant="ghost" size="sm" type="button" aria-label="Natijani nusxalash" className="min-h-11 px-2"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(result);
+                          setCopied(true);
+                        } catch {
+                          setError('Natijani nusxalab bo‘lmadi');
+                        }
+                      }}><Copy className="h-4 w-4" /></Button>
+                  )}
+                  <input aria-label="Hisob ifodasi" data-testid="calculator-display" inputMode={mode === 'simple' ? 'decimal' : 'text'}
+                    readOnly={mode === 'secret'} value={display} maxLength={160} spellCheck={false}
+                    onChange={(event) => { setDisplay(event.target.value); setResult(null); setError(null); setCopied(false); }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === '=') { event.preventDefault(); calculate(); }
+                      if (event.key === 'Escape') clear();
+                    }}
+                    className="w-full min-w-0 rounded-md bg-transparent px-1 py-1 text-right font-mono text-3xl font-semibold text-[#F5F8FF] focus:outline focus:outline-1 focus:outline-[#1677FF]" />
+                </div>
+                {copied && <p className="text-xs text-[#22C99A]" role="status">Nusxalandi</p>}
                 {error ? (
                   <div className="text-[#FF6B6B] text-sm mb-4">{error}</div>
                 ) : (
@@ -432,13 +459,13 @@ export function CalculatorPage({ initialMode = 'simple' }: { initialMode?: CalcM
             </div>
 
             {mode !== 'secret' ? (
-              <div className="mt-6 grid grid-cols-4 gap-3">
+              <div className="mt-2 grid grid-cols-4 gap-1.5 sm:gap-2">
                 {keyRows.map((row) =>
                   row.map((key) => (
                     <Button
                       key={`${row.join('-')}-${key}`}
                       variant={key === '=' ? 'primary' : key === 'C' ? 'outline' : 'secondary'}
-                      className="h-14 text-lg font-medium"
+                      className="h-11 px-1 py-0 text-base font-medium sm:h-12"
                       onClick={() => {
                         if (key === 'C') clear();
                         else if (key === '⌫') backspace();
@@ -461,25 +488,19 @@ export function CalculatorPage({ initialMode = 'simple' }: { initialMode?: CalcM
               </div>
             ) : null}
 
-            {history.length > 0 && mode !== 'secret' && (
-              <div className="mt-6">
-                <div className="flex justify-between mb-2">
-                  <h3 className="text-[#9EB7D3] text-sm font-medium">{t(language, 'history')}</h3>
-                  <Button variant="ghost" size="sm" onClick={() => setHistory([])}>
-                    {t(language, 'delete')}
-                  </Button>
-                </div>
-                <div className="space-y-1">
-                  {history.map((h, i) => (
-                    <Card key={i} className="p-3" onClick={() => { setDisplay(h.expr); setResult(null); setError(null); }}>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-[#9EB7D3]">{h.expr}</span>
-                        <span className="text-[#22C99A] font-mono">{h.res}</span>
-                      </div>
-                    </Card>
+                        {history.length > 0 && mode !== 'secret' && (
+              <details className="mt-3 rounded-xl border border-[#174D78] bg-[#0A1D33] px-3 py-2">
+                <summary className="cursor-pointer text-sm font-medium text-[#F5F8FF]">{t(language, 'history')} ({history.length})</summary>
+                <div className="mt-2 space-y-1">
+                  {history.map((entry, index) => (
+                    <button key={index} className="flex min-h-10 w-full justify-between gap-3 rounded-md px-2 py-2 text-left text-sm hover:bg-[#102943]"
+                      onClick={() => { setDisplay(entry.expr); setResult(null); setError(null); }}>
+                      <span className="break-all text-[#9EB7D3]">{entry.expr}</span>
+                      <span className="font-mono text-[#22C99A]">{entry.res}</span>
+                    </button>
                   ))}
                 </div>
-              </div>
+              </details>
             )}
           </div>
         ) : null}

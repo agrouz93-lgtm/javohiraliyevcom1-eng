@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -48,8 +48,9 @@ function Ground({ tex, night }: { tex?: THREE.Texture; night: boolean }) {
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
       <planeGeometry args={[70, 70]} />
       <meshStandardMaterial
+        key={tex?.uuid ?? 'grass-color'}
         map={tex ?? null}
-        color={night ? '#3E5F43' : tex ? '#FFFFFF' : '#54844E'}
+        color={night ? '#3E5F43' : tex ? '#D1E5C9' : '#54844E'}
         roughness={1}
       />
     </mesh>
@@ -65,21 +66,29 @@ const VIEWS: Record<string, [number, number, number]> = {
   front: [0.01, 7, 24],
 };
 
-function Rig({ view, zoomTick, levels = 1 }: { view: string; zoomTick: number; levels?: number }) {
+function Rig({ view, zoomTick, levels, rooms, fitTick }: { view: string; zoomTick: number; levels: number; rooms: PlannerRoom[]; fitTick: number }) {
   const camera = useThree((state) => state.camera);
   const controls = useThree((state) => state.controls) as import('three-stdlib').OrbitControls | null;
   const previousZoom = useRef(zoomTick);
+  const roomsRef = useRef(rooms);
+  roomsRef.current = rooms;
 
   useEffect(() => {
     if (!controls) return;
     const base = VIEWS[view] || VIEWS.iso;
-    // qavatlar soniga qarab kamerani uzoqlashtirish — uy ekrandan chiqmasin
-    const k = 1 + (levels - 1) * 0.35;
-    camera.position.set(base[0] * k, base[1] * (1 + (levels - 1) * 0.5), base[2] * k);
-    controls.target.set(0, Math.max(1, (levels * WALL_H) / 2), 0);
+    const bounds = new THREE.Box3();
+    for (const room of roomsRef.current) {
+      bounds.expandByPoint(new THREE.Vector3(room.x - room.w / 2, 0, room.z - room.d / 2));
+      bounds.expandByPoint(new THREE.Vector3(room.x + room.w / 2, (room.floor ?? 1) * (WALL_H + FLOOR_GAP), room.z + room.d / 2));
+    }
+    const center = bounds.isEmpty() ? new THREE.Vector3(0, 1, 0) : bounds.getCenter(new THREE.Vector3());
+    const radius = bounds.getSize(new THREE.Vector3()).length() / 2;
+    const aspect = camera instanceof THREE.PerspectiveCamera ? Math.min(1, camera.aspect) : 1;
+    const distance = THREE.MathUtils.clamp(radius * 2.6 / Math.max(0.5, aspect), 14, 180);
+    camera.position.copy(center).add(new THREE.Vector3(...base).setLength(distance));
+    controls.target.copy(center);
     controls.update();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [camera, controls, view, levels]);
+  }, [camera, controls, view, levels, fitTick]);
 
   useEffect(() => {
     if (!controls || zoomTick === previousZoom.current) return;
@@ -88,7 +97,7 @@ function Rig({ view, zoomTick, levels = 1 }: { view: string; zoomTick: number; l
     const dir = camera.position.clone().sub(controls.target);
     const len = dir.length();
     const next = len * 0.8 ** delta;
-    dir.setLength(THREE.MathUtils.clamp(next, 6, 80));
+    dir.setLength(THREE.MathUtils.clamp(next, 6, 180));
     camera.position.copy(controls.target).add(dir);
     controls.update();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,11 +113,15 @@ function Room({
   state,
   tex,
   offset = 0,
+  selected,
+  onSelect,
 }: {
   room: PlannerRoom;
   state: PlannerState;
   tex: Textures;
   offset?: number;
+  selected: boolean;
+  onSelect: (id: string) => void;
 }) {
   const { w, d, x, z } = room;
   const t = 0.22;
@@ -118,63 +131,70 @@ function Room({
     <meshStandardMaterial map={tex.brick ?? null} color={state.wallColor} roughness={0.85} />
   );
 
-  walls.push(
-    <mesh key="f" position={[x, WALL_H / 2 + offset, z + d / 2]}>
-      <boxGeometry args={[w, WALL_H, t]} />
-      {wallMat}
-    </mesh>
-  );
-  walls.push(
-    <mesh key="b" position={[x, WALL_H / 2 + offset, z - d / 2]}>
-      <boxGeometry args={[w, WALL_H, t]} />
-      {wallMat}
-    </mesh>
-  );
-  walls.push(
-    <mesh key="l" position={[x - w / 2, WALL_H / 2 + offset, z]}>
-      <boxGeometry args={[t, WALL_H, d]} />
-      {wallMat}
-    </mesh>
-  );
-  walls.push(
-    <mesh key="r" position={[x + w / 2, WALL_H / 2 + offset, z]}>
-      <boxGeometry args={[t, WALL_H, d]} />
-      {wallMat}
-    </mesh>
-  );
+  const addWall = (key: string, width: number, height: number, depth: number, px: number, py: number, pz: number) => {
+    if (width <= 0 || height <= 0) return;
+    walls.push(
+      <mesh key={key} position={[px, py + offset, pz]}>
+        <boxGeometry args={[width, height, depth]} />
+        {wallMat}
+      </mesh>
+    );
+  };
 
+  const front = z + d / 2;
+  const back = z - d / 2;
   if (room.door) {
+    const doorWidth = Math.min(0.9, w * 0.5);
+    const side = (w - doorWidth) / 2;
+    addWall('front-left', side, WALL_H, t, x - (w + doorWidth) / 4, WALL_H / 2, front);
+    addWall('front-right', side, WALL_H, t, x + (w + doorWidth) / 4, WALL_H / 2, front);
+    addWall('door-header', doorWidth, WALL_H - 2.1, t, x, (WALL_H + 2.1) / 2, front);
     walls.push(
-      <mesh key="d" position={[x - w / 4, 1.05 + offset, z + d / 2 + 0.02]}>
-        <boxGeometry args={[1, 2.1, t + 0.06]} />
-        <meshStandardMaterial color="#6B4A2B" roughness={0.7} />
-      </mesh>
+      <group key="door" position={[x - doorWidth / 2, 1.05 + offset, front]} rotation={[0, -Math.PI / 3, 0]}>
+        <mesh position={[doorWidth / 2, 0, 0]}>
+          <boxGeometry args={[doorWidth, 2.1, 0.07]} />
+          <meshStandardMaterial color="#6B4A2B" roughness={0.7} />
+        </mesh>
+      </group>
     );
+  } else {
+    addWall('front', w, WALL_H, t, x, WALL_H / 2, front);
   }
 
-  for (let i = 0; i < room.windows; i++) {
-    const wx = x + w / 4 - i * (w / 2);
-    walls.push(
-      <mesh key={`w${i}`} position={[wx, 1.7 + offset, z - d / 2 - 0.02]}>
-        <boxGeometry args={[1.2, 1.2, t + 0.06]} />
-        <meshStandardMaterial
-          color={state.night ? '#FFD98A' : '#8FD8FF'}
-          emissive={state.night ? '#FFB74D' : '#000000'}
-          emissiveIntensity={state.night ? 0.9 : 0}
-          roughness={0.2}
-          metalness={0.1}
-        />
-      </mesh>
-    );
+  const windows = Math.max(0, Math.min(4, Math.floor(room.windows ?? 0)));
+  if (windows) {
+    const bay = w / windows;
+    const span = Math.min(1.2, bay * 0.68);
+    const sill = 1.05;
+    const head = 2.25;
+    addWall('back-base', w, sill, t, x, sill / 2, back);
+    addWall('back-top', w, WALL_H - head, t, x, (WALL_H + head) / 2, back);
+    for (let i = 0; i < windows; i++) {
+      const center = x - w / 2 + (i + 0.5) * bay;
+      const edge = (bay - span) / 2;
+      addWall(`window-left-${i}`, edge, head - sill, t, center - (bay + span) / 4, (head + sill) / 2, back);
+      addWall(`window-right-${i}`, edge, head - sill, t, center + (bay + span) / 4, (head + sill) / 2, back);
+      walls.push(
+        <mesh key={`window-${i}`} position={[center, (head + sill) / 2 + offset, back]}>
+          <boxGeometry args={[span, head - sill, 0.045]} />
+          <meshStandardMaterial color={state.night ? '#FFD98A' : '#8FD8FF'} transparent opacity={0.58}
+            emissive={state.night ? '#FFB74D' : '#000000'} emissiveIntensity={0.7} roughness={0.18} />
+        </mesh>
+      );
+    }
+  } else {
+    addWall('back', w, WALL_H, t, x, WALL_H / 2, back);
   }
+  addWall('left', t, WALL_H, d, x - w / 2, WALL_H / 2, z);
+  addWall('right', t, WALL_H, d, x + w / 2, WALL_H / 2, z);
 
   return (
-    <group>
+    <group onClick={(event) => { event.stopPropagation(); if (event.delta < 5) onSelect(room.id); }}>
       <mesh position={[x, 0.05 + offset, z]} receiveShadow>
         <boxGeometry args={[w, 0.1, d]} />
         <meshStandardMaterial
           map={tex.concrete ?? null}
-          color={state.floorColor}
+          color={selected ? '#29B6FF' : state.floorColor}
           roughness={0.95}
         />
       </mesh>
@@ -189,22 +209,23 @@ function Room({
   );
 }
 
-function Roof({ rooms, color, baseY = 0 }: { rooms: PlannerRoom[]; color: string; baseY?: number }) {
-  if (rooms.length === 0) return null;
-  const minX = Math.min(...rooms.map((r) => r.x - r.w / 2));
-  const maxX = Math.max(...rooms.map((r) => r.x + r.w / 2));
-  const minZ = Math.min(...rooms.map((r) => r.z - r.d / 2));
-  const maxZ = Math.max(...rooms.map((r) => r.z + r.d / 2));
-  const W = maxX - minX + 0.8;
-  const D = maxZ - minZ + 0.8;
-  const H = Math.max(1.4, Math.min(W, D) * 0.38);
-  const cx = (minX + maxX) / 2;
-  const cz = (minZ + maxZ) / 2;
-
+function Roof({ room, color }: { room: PlannerRoom; color: string }) {
+  const width = room.w + 0.65;
+  const depth = room.d + 0.65;
+  const height = Math.min(3, width * 0.3);
+  const shape = useMemo(() => {
+    const profile = new THREE.Shape();
+    profile.moveTo(-width / 2, 0);
+    profile.lineTo(width / 2, 0);
+    profile.lineTo(0, height);
+    profile.closePath();
+    return profile;
+  }, [width, height]);
+  const offset = ((room.floor ?? 1) - 1) * (WALL_H + FLOOR_GAP);
   return (
-    <mesh position={[cx, baseY + WALL_H + H / 2 + 0.05, cz]} scale={[W / 2 + 0.1, H, D / 2 + 0.1]}>
-      <coneGeometry args={[1, 1, 4, 1]} />
-      <meshStandardMaterial color={color} roughness={0.6} metalness={0.15} />
+    <mesh position={[room.x, offset + WALL_H, room.z - depth / 2]}>
+      <extrudeGeometry args={[shape, { depth, bevelEnabled: false }]} />
+      <meshStandardMaterial color={color} roughness={0.72} />
     </mesh>
   );
 }
@@ -338,10 +359,13 @@ export interface HouseSceneProps {
   view: string;
   zoomTick: number;
   onFailure: () => void;
+  onSelect: (id: string) => void;
+  selected: string | null;
+  cutawayFloor: number | null;
+  fitTick: number;
 }
 
-export function HouseScene({ state, view, zoomTick, onFailure }: HouseSceneProps) {
-  const night = state.night;
+export function HouseScene(props: HouseSceneProps) {
   return (
     <Canvas
       frameloop="demand"
@@ -349,7 +373,7 @@ export function HouseScene({ state, view, zoomTick, onFailure }: HouseSceneProps
       camera={{ position: [16, 12, 16], fov: 50, near: 0.1, far: 400 }}
       gl={{ antialias: false }}
     >
-      <SceneContent state={state} view={view} zoomTick={zoomTick} night={night} onFailure={onFailure} />
+      <SceneContent {...props} />
     </Canvas>
   );
 }
@@ -358,9 +382,9 @@ function SceneContent({
   state,
   view,
   zoomTick,
-  night,
-  onFailure,
-}: HouseSceneProps & { night: boolean }) {
+  onFailure, onSelect, selected, cutawayFloor, fitTick,
+}: HouseSceneProps) {
+  const { night } = state;
   const tex = useRealTextures();
   const canvas = useThree((state) => state.gl.domElement);
   useEffect(() => {
@@ -368,6 +392,12 @@ function SceneContent({
     canvas.addEventListener('webglcontextlost', handleContextLoss);
     return () => canvas.removeEventListener('webglcontextlost', handleContextLoss);
   }, [canvas, onFailure]);
+
+  const visibleRooms = cutawayFloor === null ? state.rooms : state.rooms.filter((room) => (room.floor ?? 1) <= cutawayFloor);
+  const roofs = cutawayFloor === null && state.roofOn ? visibleRooms.filter((room) => !visibleRooms.some((above) =>
+    (above.floor ?? 1) > (room.floor ?? 1) && Math.abs(room.x - above.x) < (room.w + above.w) / 2
+    && Math.abs(room.z - above.z) < (room.d + above.d) / 2
+  )) : [];
 
   return (
     <>
@@ -385,40 +415,22 @@ function SceneContent({
       {/* haqiqiy maysazor */}
       <Ground tex={tex.grass} night={night} />
 
-      {Array.from({ length: state.floors || 1 }).map((_, f) =>
-        state.rooms
-          .filter((room) => (room.floor ?? 1) === f + 1)
-          .map((room) => (
-            <Room
-              key={`${f}-${room.id}`}
-              room={room}
-              state={state}
-              tex={tex}
-              offset={f * (WALL_H + FLOOR_GAP)}
-            />
-          ))
-      )}
-      {state.roofOn && state.rooms.length > 0 && (
-        <Roof
-          rooms={state.rooms}
-          color={state.roofColor}
-          baseY={
-            (state.rooms.reduce((m, r) => Math.max(m, r.floor ?? 1), 1) - 1) *
-            (WALL_H + FLOOR_GAP)
-          }
-        />
-      )}
+      {visibleRooms.map((room) => (
+        <Room key={room.id} room={room} state={state} tex={tex} selected={selected === room.id} onSelect={onSelect}
+          offset={((room.floor ?? 1) - 1) * (WALL_H + FLOOR_GAP)} />
+      ))}
+      {roofs.map((room) => <Roof key={room.id} room={room} color={state.roofColor} />)}
       {state.items.map((item) => (
         <Exterior key={item.id} item={item} night={night} tex={tex} />
       ))}
 
-      <Rig view={view} zoomTick={zoomTick} levels={state.floors || 1} />
+      <Rig view={view} zoomTick={zoomTick} levels={cutawayFloor ?? state.floors ?? 1} rooms={visibleRooms} fitTick={fitTick} />
       <OrbitControls
         makeDefault
         enableDamping
         dampingFactor={0.08}
         minDistance={6}
-        maxDistance={80}
+        maxDistance={180}
         maxPolarAngle={Math.PI / 2 - 0.05}
         target={[0, 1, 0]}
       />

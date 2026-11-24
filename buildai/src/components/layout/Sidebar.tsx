@@ -14,7 +14,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       {/* Mobile-only dim layer: tap to close */}
       {open && (
         <div
-          className="fixed inset-0 top-16 bg-black/50 z-30 md:hidden"
+          className="fixed inset-0 top-[var(--header-height)] bg-black/50 z-30 md:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -22,7 +22,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 
       <aside
         aria-hidden={!open}
-        className={`fixed top-16 bottom-0 left-0 w-80 max-w-[85vw] z-40 bg-[#0A1D33] border-r border-[#174D78] shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
+        className={`fixed top-[var(--header-height)] bottom-0 left-0 w-80 max-w-[85vw] z-40 bg-[#0A1D33] border-r border-[#174D78] shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
           open ? 'translate-x-0' : '-translate-x-full invisible'
         }`}
       >

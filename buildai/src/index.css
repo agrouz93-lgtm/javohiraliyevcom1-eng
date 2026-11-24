@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  --header-height: calc(4rem + env(safe-area-inset-top));
   --bg: #061426;
   --card: #102943;
   --card-secondary: #0A1D33;

@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import {
   Save, Plus, Trash2, RotateCcw, Maximize2, Moon, Sun,
-  Minus, House, Grid2x2, Box, Package,
+  Minus, House, Grid2x2, Box, Package, Copy, Focus, Layers,
 } from 'lucide-react';
 import type { PlannerState, PlannerRoom, ExteriorItem, ExteriorKind, Project } from '@/types';
 import { SHOP_ITEMS } from '@/data/products';
@@ -101,6 +101,8 @@ export function PlannerPage() {
   const [mode, setMode] = useState<'3d' | '2d'>(() => window.matchMedia('(pointer: coarse), (max-width: 767px)').matches ? '2d' : '3d')
   const [sceneFailed, setSceneFailed] = useState(false);
   const returnToPlan = () => { setSceneFailed(true); setMode('2d'); };
+  const [fitTick, setFitTick] = useState(0);
+  const [cutaway, setCutaway] = useState(false);
   const [camView, setCamView] = useState('iso');
   const [zoomTick, setZoomTick] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -108,6 +110,7 @@ export function PlannerPage() {
   const [activeFloor, setActiveFloor] = useState(1); // qaysi qavatga xona qo'shilmoqda
 
   const wrapRef = useRef<HTMLDivElement>(null);
+  const roomEditorRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const dragRef = useRef<{ id: string; dx: number; dz: number } | null>(null);
   const loadedIdRef = useRef<string | null>(null);
@@ -126,12 +129,14 @@ export function PlannerPage() {
     }
     setSelected(null);
     setActiveFloor(1);
+    setFitTick((value) => value + 1);
   }, [currentProject]);
 
   const addRoom = (label: string) => {
     const def = ROOM_TYPES.find((r) => r.label === label) || ROOM_TYPES[0];
     setState((prev) => {
-      const maxX = prev.rooms.length ? Math.max(...prev.rooms.map((r) => r.x + r.w / 2)) : -def.w / 2;
+      const rooms = prev.rooms.filter((room) => (room.floor ?? 1) === activeFloor);
+      const maxX = rooms.length ? Math.max(...rooms.map((r) => r.x + r.w / 2)) : -def.w / 2 - 1;
       const room: PlannerRoom = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         name: label,
@@ -145,14 +150,35 @@ export function PlannerPage() {
       };
       return { ...prev, rooms: [...prev.rooms, room] };
     });
+    setFitTick((value) => value + 1);
     setSavedMsg(null);
   };
 
-  const updateRoom = (id: string, patch: Partial<PlannerRoom>) =>
+  const updateRoom = (id: string, patch: Partial<PlannerRoom>) => {
     setState((prev) => ({
       ...prev,
-      rooms: prev.rooms.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+      rooms: prev.rooms.map((room) => (room.id === id ? { ...room, ...patch } : room)),
     }));
+    setSavedMsg(null);
+  };
+
+  const selectRoom = (id: string) => {
+    const room = state.rooms.find((entry) => entry.id === id);
+    if (!room) return;
+    setSelected(id);
+    setActiveFloor(room.floor ?? 1);
+  };
+
+  const duplicateRoom = (room: PlannerRoom) => {
+    const sameFloor = state.rooms.filter((entry) => (entry.floor ?? 1) === (room.floor ?? 1));
+    const right = Math.max(...sameFloor.map((entry) => entry.x + entry.w / 2));
+    const copy = { ...room, id: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
+      name: `${room.name} (nusxa)`, x: snap(right + room.w / 2 + 0.5) };
+    setState((prev) => ({ ...prev, rooms: [...prev.rooms, copy] }));
+    setSelected(copy.id);
+    setFitTick((value) => value + 1);
+    setSavedMsg(null);
+  };
 
   const removeRoom = (id: string) => {
     setState((prev) => ({ ...prev, rooms: prev.rooms.filter((r) => r.id !== id) }));
@@ -360,12 +386,13 @@ export function PlannerPage() {
           <div className="lg:col-span-2">
             <div
               ref={wrapRef}
-              className="relative h-[420px] md:h-[560px] rounded-2xl overflow-hidden border border-[#174D78] bg-[#050D18]"
+              className="relative h-[min(52dvh,420px)] min-h-[280px] md:h-[560px] rounded-2xl overflow-hidden border border-[#174D78] bg-[#050D18]"
             >
               {mode === '3d' ? (
                 <SceneBoundary onFailure={returnToPlan}>
                   <Suspense fallback={<p className="p-4 text-sm text-[#9EB7D3]" role="status">3D ko‘rinish yuklanmoqda…</p>}>
-                    <HouseScene state={state} view={camView} zoomTick={zoomTick} onFailure={returnToPlan} />
+                    <HouseScene state={state} view={camView} zoomTick={zoomTick} onFailure={returnToPlan} selected={selected}
+                      onSelect={selectRoom} cutawayFloor={cutaway ? activeFloor : null} fitTick={fitTick} />
                   </Suspense>
                 </SceneBoundary>
               ) : (
@@ -439,30 +466,42 @@ export function PlannerPage() {
 
               <div className="absolute top-3 left-3 text-[11px] px-2.5 py-1.5 rounded-lg bg-[#061426]/80 border border-[#174D78] text-[#9EB7D3] pointer-events-none max-w-[70%]">
                 {mode === '3d'
-                  ? "Sichqoncha: aylantish · G'ildirak: yaqinlashtirish · Shift: siljitish"
+                  ? 'Aylantirish uchun suring. Xonani tanlash uchun bosing.'
                   : 'Xonani bosib sirab joylashtiring, o\'lchamlarni o\'ng paneldan o\'zgartiring'}
               </div>
 
+              {selectedRoom && (
+                <Button variant="secondary" size="sm" className="absolute right-3 top-3 min-h-10"
+                  onClick={() => roomEditorRef.current?.scrollIntoView({ block: 'start' })}>Xonani tahrirlash</Button>
+              )}
               {mode === '3d' && (
-                <div className="absolute bottom-3 right-3 flex flex-col gap-2">
+                <div className="absolute bottom-3 right-3 flex flex-wrap justify-end gap-2">
+                  <Button variant="secondary" size="sm" onClick={() => setCutaway((value) => !value)} aria-pressed={cutaway}
+                    aria-label="Qavat ichini ko‘rish" title="Qavat ichini ko‘rish" className="min-h-11 px-2">
+                    <Layers className="w-4 h-4" />
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => setFitTick((value) => value + 1)}
+                    aria-label="Modelni ekranga sig‘dirish" title="Modelni ekranga sig‘dirish" className="min-h-11 px-2">
+                    <Focus className="w-4 h-4" />
+                  </Button>
                   <button
                     onClick={() => setZoomTick((v) => v + 1)}
                     aria-label="Yaqinlashtirish"
-                    className="w-9 h-9 rounded-lg bg-[#0A1D33]/90 border border-[#174D78] text-[#F5F8FF] hover:border-[#1677FF] flex items-center justify-center"
+                    className="w-11 h-11 rounded-lg bg-[#0A1D33]/90 border border-[#174D78] text-[#F5F8FF] hover:border-[#1677FF] flex items-center justify-center"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setZoomTick((v) => v - 1)}
                     aria-label="Uzoqlashtirish"
-                    className="w-9 h-9 rounded-lg bg-[#0A1D33]/90 border border-[#174D78] text-[#F5F8FF] hover:border-[#1677FF] flex items-center justify-center"
+                    className="w-11 h-11 rounded-lg bg-[#0A1D33]/90 border border-[#174D78] text-[#F5F8FF] hover:border-[#1677FF] flex items-center justify-center"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => { setCamView('reset'); setTimeout(() => setCamView('iso'), 0); }}
                     aria-label={t(language, 'resetCamera')}
-                    className="w-9 h-9 rounded-lg bg-[#0A1D33]/90 border border-[#174D78] text-[#F5F8FF] hover:border-[#1677FF] flex items-center justify-center"
+                    className="w-11 h-11 rounded-lg bg-[#0A1D33]/90 border border-[#174D78] text-[#F5F8FF] hover:border-[#1677FF] flex items-center justify-center"
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
@@ -502,6 +541,7 @@ export function PlannerPage() {
                       setSavedMsg(null);
                       setSelected(null);
                       setActiveFloor(1);
+                      setFitTick((value) => value + 1);
                     }}
                     className="px-1 py-2 rounded-lg bg-[#0A1D33] border border-[#174D78] text-[#9EB7D3] text-xs hover:text-[#F5F8FF] hover:border-[#1677FF] transition-colors"
                     title={`${n} xonali uy loyihasini yaratish`}
@@ -544,6 +584,7 @@ export function PlannerPage() {
                       setState((p) => ({ ...p, floors: nf }));
                       setActiveFloor((a) => Math.min(a, nf));
                     }}
+                    disabled={(state.floors ?? 1) <= 1 || state.rooms.some((room) => (room.floor ?? 1) >= (state.floors ?? 1))}
                     aria-label="Qavat kamaytirish"
                     className="w-7 h-7 rounded border border-[#174D78] text-[#9EB7D3] hover:text-[#F5F8FF] flex items-center justify-center"
                   >
@@ -596,7 +637,7 @@ export function PlannerPage() {
                           : 'bg-[#0A1D33] border-[#174D78]'
                       }`}
                     >
-                      <button onClick={() => setSelected(r.id)} className="flex-1 text-left min-w-0">
+                      <button onClick={() => selectRoom(r.id)} className="flex-1 text-left min-w-0">
                         <span className="block text-sm text-[#F5F8FF] truncate">{r.name}</span>
                         <span className="block text-[11px] text-[#6B7C93]">
                           {r.w}×{r.d} m · {(r.w * r.d).toFixed(1)} m²
@@ -616,8 +657,29 @@ export function PlannerPage() {
             </Card>
 
             {selectedRoom && (
+              <div ref={roomEditorRef} className="scroll-mt-20">
               <Card className="p-4 border-[#1677FF]/50">
                 <h3 className="font-semibold text-[#F5F8FF] mb-3">{selectedRoom.name} — sozlamalar</h3>
+
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <label className="text-xs text-[#9EB7D3]">Xona nomi
+                    <input value={selectedRoom.name} onChange={(event) => updateRoom(selectedRoom.id, { name: event.target.value })}
+                      className="mt-1 w-full rounded-lg border border-[#174D78] bg-[#0A1D33] px-2 py-2 text-sm text-[#F5F8FF]" />
+                  </label>
+                  <label className="text-xs text-[#9EB7D3]">Xona qavati
+                    <select value={selectedRoom.floor ?? 1} onChange={(event) => {
+                      const floor = Number(event.target.value);
+                      updateRoom(selectedRoom.id, { floor });
+                      setState((previous) => ({ ...previous, floors: Math.max(previous.floors ?? 1, floor) }));
+                      setActiveFloor(floor);
+                    }} className="mt-1 w-full rounded-lg border border-[#174D78] bg-[#0A1D33] px-2 py-2 text-sm text-[#F5F8FF]">
+                      {[1, 2, 3].map((floor) => <option key={floor} value={floor}>{floor}-qavat</option>)}
+                    </select>
+                  </label>
+                </div>
+                <Button variant="outline" size="sm" className="mb-3 inline-flex min-h-10 items-center gap-2" onClick={() => duplicateRoom(selectedRoom)}>
+                  <Copy className="h-4 w-4" /> Xonadan nusxa olish
+                </Button>
 
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <label className="text-xs text-[#9EB7D3]">
@@ -685,6 +747,7 @@ export function PlannerPage() {
                   </div>
                 </div>
               </Card>
+              </div>
             )}
 
             <Card className="p-4">

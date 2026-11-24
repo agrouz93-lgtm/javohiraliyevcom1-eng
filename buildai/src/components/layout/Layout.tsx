@@ -41,8 +41,8 @@ export function Layout({ children, activePage, onPageChange }: LayoutProps) {
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main
-        className={`pt-16 transition-[margin] duration-300 ${sidebarOpen ? 'md:ml-80' : 'ml-0'} ${
-          isMobile ? 'pb-28' : 'pb-12'
+        className={`pt-[var(--header-height)] transition-[margin] duration-300 ${sidebarOpen ? 'md:ml-80' : 'ml-0'} ${
+          isMobile ? 'pb-[calc(5rem+env(safe-area-inset-bottom))]' : 'pb-12'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6">{children}</div>

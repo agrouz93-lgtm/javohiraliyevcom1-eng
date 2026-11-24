@@ -77,8 +77,8 @@ export function Navbar({ onMenuClick, menuOpen = false, onNavigate }: NavbarProp
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-[#061426]/85 backdrop-blur-md border-b border-[#174D78] z-50">
-        <div className="h-full px-4 md:px-6 flex items-center justify-between gap-3">
+      <nav className="fixed top-0 left-0 right-0 h-[var(--header-height)] pt-[env(safe-area-inset-top)] bg-[#061426]/85 backdrop-blur-md border-b border-[#174D78] z-50">
+        <div className="h-full px-2 sm:px-4 md:px-6 flex items-center justify-between gap-1.5 sm:gap-3">
           {/* Left: hamburger + logo */}
           <div className="flex items-center gap-3 min-w-0">
             <button
@@ -91,7 +91,7 @@ export function Navbar({ onMenuClick, menuOpen = false, onNavigate }: NavbarProp
             >
               <Menu className="w-6 h-6" />
             </button>
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="hidden sm:flex items-center gap-2 min-w-0">
               <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-[#E040FB] to-[#FF4D9D] flex items-center justify-center shrink-0 shadow-[0_0_14px_rgba(224,64,251,0.4)]">
                 <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M3 10.5 12 3.5l9 7" />
@@ -107,7 +107,7 @@ export function Navbar({ onMenuClick, menuOpen = false, onNavigate }: NavbarProp
           </div>
 
           {/* Right: language, theme, notifications, profile */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <select
               value={lang}
               onChange={(e) => setLanguage(e.target.value as any)}
@@ -153,7 +153,10 @@ export function Navbar({ onMenuClick, menuOpen = false, onNavigate }: NavbarProp
               title={t(lang, 'demoFunds')}
             >
               <Wallet className="w-4 h-4 text-[#29B6FF]" />
-              <span className="text-sm font-semibold text-[#F5F8FF] tabular-nums">{balance.toLocaleString()}</span>
+              <span className="hidden sm:inline text-sm font-semibold text-[#F5F8FF] tabular-nums">{balance.toLocaleString()}</span>
+              <span className="sm:hidden text-xs font-semibold text-[#F5F8FF] tabular-nums" title={balance.toLocaleString()}>
+                {new Intl.NumberFormat(lang === 'uz' ? 'uz-UZ' : lang, { notation: 'compact', maximumFractionDigits: 1 }).format(balance)}
+              </span>
               <span className="text-[11px] text-[#9EB7D3] hidden sm:inline">so'm</span>
               <button
                 onClick={() => addBalance(50000)}
@@ -207,7 +210,7 @@ export function Navbar({ onMenuClick, menuOpen = false, onNavigate }: NavbarProp
 
       {/* search (mobile row) */}
       {searchOpen && (
-        <div className="fixed top-16 left-0 right-0 md:hidden bg-[#0A1D33] border-b border-[#174D78] p-3 z-[54] animate-fade-in">
+        <div className="fixed top-[var(--header-height)] left-0 right-0 md:hidden bg-[#0A1D33] border-b border-[#174D78] p-3 z-[54] animate-fade-in">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7C93] pointer-events-none" />
             <input
@@ -232,7 +235,7 @@ export function Navbar({ onMenuClick, menuOpen = false, onNavigate }: NavbarProp
 
       {/* Notifications panel */}
       {panel === 'bell' && (
-        <div className="fixed top-16 right-3 sm:right-4 z-[56] w-[calc(100vw-1.5rem)] max-w-sm bg-[#0A1D33] border border-[#174D78] rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+        <div className="fixed top-[var(--header-height)] right-3 sm:right-4 z-[56] w-[calc(100vw-1.5rem)] max-w-sm bg-[#0A1D33] border border-[#174D78] rounded-xl shadow-2xl overflow-hidden animate-fade-in">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#174D78]">
             <span className="font-semibold text-[#F5F8FF] text-sm">{t(lang, 'notifications')}</span>
             {unread > 0 && (
@@ -277,7 +280,7 @@ export function Navbar({ onMenuClick, menuOpen = false, onNavigate }: NavbarProp
 
       {/* Profile panel */}
       {panel === 'profile' && (
-        <div className="fixed top-16 right-3 sm:right-4 z-[56] w-64 bg-[#0A1D33] border border-[#174D78] rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+        <div className="fixed top-[var(--header-height)] right-3 sm:right-4 z-[56] w-64 bg-[#0A1D33] border border-[#174D78] rounded-xl shadow-2xl overflow-hidden animate-fade-in">
           <div className="px-4 py-3 border-b border-[#174D78]">
             <p className="text-sm font-semibold text-[#F5F8FF] truncate">{user?.name || '—'}</p>
             <p className="text-xs text-[#9EB7D3] truncate">{user?.email || t(lang, 'profile')}</p>
