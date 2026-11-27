@@ -2,7 +2,8 @@
 
 import {useCallback,useEffect,useState} from 'react';
 import {ArrowRight,Banknote,ClipboardList,History,LayoutList,Plus,RefreshCw,Send,Settings,User,CheckCircle2,X,Loader2} from 'lucide-react';
-import {api,fmt,json,type UserProfile} from './shared';
+import type {UserProfile} from './auth-screen';
+import {api,fmt,json} from './shared';
 
 type Status = 'pending'|'paid'|'rejected';
 type Tab = 'balance'|'admin';
@@ -161,7 +162,7 @@ export function Payments({profile}:{profile:UserProfile}) {
             </div>
 
             <div className="card history-card">
-              <div className="card-header"><div className="card-title">Tranzaksiya tarixi</div><RefreshCw size={16} onClick={load} className="icon-button" title="Yangilash"/></div>
+              <div className="card-header"><div className="card-title">Tranzaksiya tarixi</div><button type="button" className="icon-button" aria-label="Yangilash" title="Yangilash" onClick={load} disabled={loading}><RefreshCw size={16}/></button></div>
               {transactions.length===0 && <p className="muted">Hech qanday tranzaksiya yo‘q.</p>}
               <table>
                 <thead><tr><th>Sana</th><th>Turi</th><th>Miqdor</th><th>Izoh</th></tr></thead>
@@ -245,7 +246,7 @@ export function Payments({profile}:{profile:UserProfile}) {
         </>
       )}
 
-      {notice && <div role="status" className="notice">{notice}<button aria-label="Yopish" onClick={()=>setNotice('')}<X size={16}/></button></div>}
+      {notice && <div role="status" className="notice">{notice}<button aria-label="Yopish" onClick={()=>setNotice('')}><X size={16}/></button></div>}
     </section>
   );
 }

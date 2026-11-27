@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Base64;
 import android.app.DownloadManager;
 import android.os.Environment;
@@ -25,10 +26,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class MainActivity extends Activity {
     private static final String LOCAL = "https://appassets.androidplatform.net/";
@@ -37,10 +41,12 @@ public class MainActivity extends Activity {
     private static final int SAVE_FILE = 3;
     private static final int TAKE_PHOTO = 4;
     private static final int NATIVE_CAMERA_PERMISSION = 5;
+    private static final Uri CAMERA_OUTPUT = Uri.parse("content://uz.ustapro.camera/capture.jpg");
     private WebView web;
     private String startUrl;
     private PermissionRequest cameraRequest;
     private ValueCallback<Uri[]> imageRequest;
+    private final AtomicLong nativeCameraRequestUntil = new AtomicLong();
     private byte[] pendingFile;
 
     @Override public void onCreate(Bundle state) {
@@ -126,7 +132,11 @@ public class MainActivity extends Activity {
             @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (imageRequest != null) imageRequest.onReceiveValue(null);
                 imageRequest = callback;
-                if (params.isCaptureEnabled()) {
+                long cameraDeadline = nativeCameraRequestUntil.getAndSet(0);
+                String currentPage = view.getUrl();
+                boolean cameraButton = cameraDeadline > SystemClock.elapsedRealtime() && LOCAL.equals(startUrl) &&
+                    currentPage != null && sameOrigin(Uri.parse(currentPage), Uri.parse(LOCAL));
+                if (cameraButton || params.isCaptureEnabled()) {
                     if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) takePhoto();
                     else requestPermissions(new String[]{Manifest.permission.CAMERA}, NATIVE_CAMERA_PERMISSION);
                     return true;
@@ -227,17 +237,29 @@ public class MainActivity extends Activity {
     }
 
     private void takePhoto() {
-        Uri output = Uri.parse("content://uz.ustapro.camera/capture.jpg");
+        if (imageRequest == null) return;
+        try (FileOutputStream ignored = new FileOutputStream(new File(getCacheDir(), "capture.jpg"))) {
+            // A failed capture must not return an older photo from the cache.
+        } catch (IOException exception) {
+            finishImageRequest(null);
+            Toast.makeText(this, "Yangi surat uchun fayl ochilmadi.", Toast.LENGTH_LONG).show();
+            return;
+        }
         Intent camera = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        camera.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, output);
-        camera.setClipData(android.content.ClipData.newRawUri("USTA PRO rasm",output));
+        camera.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, CAMERA_OUTPUT);
+        camera.setClipData(android.content.ClipData.newRawUri("USTA PRO rasm", CAMERA_OUTPUT));
         camera.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         try { startActivityForResult(camera, TAKE_PHOTO); }
         catch (android.content.ActivityNotFoundException | SecurityException exception) {
-            if (imageRequest != null) imageRequest.onReceiveValue(null);
-            imageRequest = null;
-            Toast.makeText(this,"Telefon kamerasi ochilmadi. Rasm yuklashdan foydalaning.",Toast.LENGTH_LONG).show();
+            finishImageRequest(null);
+            Toast.makeText(this, "Telefon kamerasi ochilmadi.", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void finishImageRequest(Uri uri) {
+        ValueCallback<Uri[]> callback = imageRequest;
+        imageRequest = null;
+        if (callback != null) callback.onReceiveValue(uri == null ? null : new Uri[]{uri});
     }
 
     private static boolean sameOrigin(Uri candidate, Uri trusted) {
@@ -305,7 +327,10 @@ public class MainActivity extends Activity {
         super.onRequestPermissionsResult(code, permissions, results);
         if (code == NATIVE_CAMERA_PERMISSION) {
             if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) takePhoto();
-            else { if (imageRequest != null) imageRequest.onReceiveValue(null); imageRequest = null; }
+            else {
+                finishImageRequest(null);
+                Toast.makeText(this, "Rasmga olish uchun kamera ruxsati kerak.", Toast.LENGTH_LONG).show();
+            }
             return;
         }
         if (code != CAMERA || cameraRequest == null) return;
@@ -318,14 +343,20 @@ public class MainActivity extends Activity {
     }
 
     private void configureExportBridge() {
+        nativeCameraRequestUntil.set(0);
         web.removeJavascriptInterface("UstaAndroid");
         if (startUrl.equals(LOCAL)) web.addJavascriptInterface(new ExportBridge(), "UstaAndroid");
     }
 
     public class ExportBridge {
+        @JavascriptInterface public void setCameraFileChooser(boolean capture) {
+            nativeCameraRequestUntil.set(capture ? SystemClock.elapsedRealtime() + 5000 : 0);
+        }
+
         @JavascriptInterface public void save(String name, String data) {
             if (name == null || data == null || data.length() > 16_000_000) return;
-            String mime = name.equals("usta-reja.json") ? "application/json"
+            String mime = name.equals("usta-reja.json") || name.equals("usta-olchov.json") ? "application/json"
+                : name.equals("usta-olchov-belgisi-18-sm.pdf") ? "application/pdf"
                 : name.equals("usta-3d.png") ? "image/png" : name.equals("usta-model.glb") ? "model/gltf-binary" : null;
             if (mime == null) return;
             runOnUiThread(() -> {
@@ -346,14 +377,15 @@ public class MainActivity extends Activity {
     @Override protected void onActivityResult(int code, int result, Intent data) {
         super.onActivityResult(code, result, data);
         if (code == TAKE_PHOTO && imageRequest != null) {
-            imageRequest.onReceiveValue(result == RESULT_OK ?
-                new Uri[]{Uri.parse("content://uz.ustapro.camera/capture.jpg")} : null);
-            imageRequest = null;
+            boolean captured = result == RESULT_OK && new File(getCacheDir(), "capture.jpg").length() > 0;
+            finishImageRequest(captured ? CAMERA_OUTPUT : null);
+            if (result == RESULT_OK && !captured) {
+                Toast.makeText(this, "Kamera surat faylini qaytarmadi. Qayta rasmga oling.", Toast.LENGTH_LONG).show();
+            }
         }
         if (code == PICK_IMAGE && imageRequest != null) {
             Uri uri = result == RESULT_OK && data != null ? data.getData() : null;
-            imageRequest.onReceiveValue(uri == null ? null : new Uri[]{uri});
-            imageRequest = null;
+            finishImageRequest(uri);
         }
         if (code == SAVE_FILE && pendingFile != null) {
             byte[] contents = pendingFile;

@@ -16,6 +16,94 @@ export function polygon(points, metersPerPixel) {
   return { area: Math.abs(cross) * metersPerPixel ** 2 / 2, perimeter, sides };
 }
 
+const turn = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+const imagePoint = point => point && Number.isFinite(point.x) && Number.isFinite(point.y) &&
+  point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1;
+const positive = value => Number.isFinite(value) && value > 0;
+
+function segmentIntersects(a, b, c, d) {
+  const on = (p, q, r) => Math.abs(turn(p, q, r)) < 1e-10 &&
+    r.x >= Math.min(p.x, q.x) && r.x <= Math.max(p.x, q.x) &&
+    r.y >= Math.min(p.y, q.y) && r.y <= Math.max(p.y, q.y);
+  return (turn(a, b, c) * turn(a, b, d) < 0 && turn(c, d, a) * turn(c, d, b) < 0) ||
+    on(a, b, c) || on(a, b, d) || on(c, d, a) || on(c, d, b);
+}
+
+function simpleImageOutline(points) {
+  if (points.length < 3 || !points.every(imagePoint) ||
+      new Set(points.map(({x, y}) => `${x},${y}`)).size !== points.length) return false;
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 2; j < points.length; j++) {
+      if (i === 0 && j === points.length - 1) continue;
+      if (segmentIntersects(points[i], points[i + 1], points[j], points[(j + 1) % points.length])) return false;
+    }
+  }
+  return true;
+}
+
+function validArea(result) {
+  return result && positive(result.area) && positive(result.perimeter) ? result : null;
+}
+
+export function measurePhotoArea(points, reference, meters, aspectRatio) {
+  if (reference.length !== 2 || !reference.every(imagePoint) || !positive(meters) ||
+      !positive(aspectRatio) || !simpleImageOutline(points)) return null;
+  const [start, end] = reference;
+  const referenceLength = Math.hypot((end.x - start.x) * aspectRatio, end.y - start.y);
+  if (referenceLength === 0) return null;
+  const scale = meters / referenceLength;
+  const world = points.map(({x, y}) => ({x: x * aspectRatio * scale, y: y * scale}));
+  const result = validArea(polygon(world, 1));
+  return result && {...result, outline: world};
+}
+
+export function projectiveRectangle(reference) {
+  if (reference.length !== 4 || !reference.every(imagePoint)) return null;
+  const winding = Math.sign(turn(reference[0], reference[1], reference[2]));
+  if (!reference.every((point, i) => winding * turn(point, reference[(i + 1) % 4], reference[(i + 2) % 4]) > 1e-8)) return null;
+
+  // Fit a projective map from the unit rectangle to the four image corners.
+  const [origin, alongLength, far, alongWidth] = reference;
+  const lengthEdge = {x: alongLength.x - far.x, y: alongLength.y - far.y};
+  const widthEdge = {x: alongWidth.x - far.x, y: alongWidth.y - far.y};
+  const residual = {x: origin.x - alongLength.x + far.x - alongWidth.x,
+    y: origin.y - alongLength.y + far.y - alongWidth.y};
+  const determinant = lengthEdge.x * widthEdge.y - widthEdge.x * lengthEdge.y;
+  const gx = (residual.x * widthEdge.y - widthEdge.x * residual.y) / determinant;
+  const gy = (lengthEdge.x * residual.y - residual.x * lengthEdge.y) / determinant;
+  const a = alongLength.x * (1 + gx) - origin.x;
+  const b = alongWidth.x * (1 + gy) - origin.x;
+  const c = alongLength.y * (1 + gx) - origin.y;
+  const d = alongWidth.y * (1 + gy) - origin.y;
+  return {origin, a, b, c, d, gx, gy};
+}
+
+export function measurePerspectiveArea(points, reference, length, width) {
+  if (!positive(length) || !positive(width) || !simpleImageOutline(points)) return null;
+  const projection = projectiveRectangle(reference);
+  if (!projection) return null;
+  const {origin, a, b, c, d, gx, gy} = projection;
+
+  function imageAxes({x, y}) {
+    const xLength = a - x * gx, xWidth = b - x * gy;
+    const yLength = c - y * gx, yWidth = d - y * gy;
+    return {xLength, xWidth, yLength, yWidth, det: xLength * yWidth - xWidth * yLength};
+  }
+
+  // Invert the map for each outline point and reject a contour crossing its projection horizon.
+  const side = Math.sign(imageAxes(origin).det);
+  const world = [];
+  for (const point of points) {
+    const {xLength, xWidth, yLength, yWidth, det} = imageAxes(point);
+    if (det * side <= 1e-9) return null;
+    const x = point.x - origin.x, y = point.y - origin.y;
+    world.push({x: length * (x * yWidth - y * xWidth) / det,
+      y: width * (xLength * y - yLength * x) / det});
+  }
+  const result = validArea(polygon(world, 1));
+  return result && {...result, outline: world};
+}
+
 export function countMaterials(items) {
   const groups = new Map();
   for (const item of items) {

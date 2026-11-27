@@ -9,13 +9,14 @@ import {Assistant} from './assistant';
 import {ArrowDownToLine, ArrowRight, Bell, Banknote, Bot, Box, Calculator, ChevronDown, ClipboardList, FolderOpen, House, Layers3, LogOut, Menu, ScanLine, Settings, ShieldCheck, Sparkles, X} from 'lucide-react';
 import {api, fmt, id, json, type Entry, type RecordRow, type Save} from './shared';
 import {CameraTool} from './camera';
+import {MeasurementTool} from './measurement-tool';
 import {Estimate} from './estimate';
 import {Planner} from './planner';
 import {Payments} from './payments';
 
 const pages = [
   {name:'Bosh sahifa', icon:House, tone:'violet'},
-  {name:'Kamera 1 — O‘lchash', icon:ScanLine, tone:'blue', desc:'Rasm yoki kamera orqali maydon va perimetrni o‘lchang.'},
+  {name:'Uy maydonini o‘lchash', icon:ScanLine, tone:'blue', desc:'Surat yoki o‘lchamlardan maydon va perimetrni hisoblang.'},
   {name:'Kamera 2 — Sanash', icon:Layers3, tone:'green', desc:'Qurilish materiallarini aniqlang va dona hisobini yuriting.'},
   {name:'Uy dizayni', icon:Box, tone:'violet', desc:'Uyingiz rejasini 2D chizing va 3D ko‘rinishda tekshiring.'},
   {name:'Kalkulyator', icon:Calculator, tone:'amber', desc:'Material sarfi, ish haqi va yakuniy smetani hisoblang.'},
@@ -26,7 +27,7 @@ const pages = [
   {name:'Mebel do‘koni',icon:Box,tone:'amber'},
   {name:'Balans va pul yechish',icon:Banknote,tone:'green',desc:'Balansni kuzating, ish haqini ko‘ring va pul yechish arizasi yuboring.'},
 ];
-const mobilePages = [[0, 'Bosh'], [1, 'O‘lchov'], [2, 'Sanoq'], [3, 'Dizayn'], [4, 'Smeta']] as const;
+const mobilePages = [[0, 'Bosh'], [1, 'Maydon'], [2, 'Sanoq'], [3, 'Dizayn'], [4, 'Smeta']] as const;
 
 export default function Home() {
   const [page, setPage] = useState(0);
@@ -130,8 +131,8 @@ export default function Home() {
       <main className="content">
       {notice && <div role="status" className="notice">{notice}<button aria-label="Yopish" onClick={() => setNotice('')}><X size={16}/></button></div>}
       {page === 0 ? <HomeDashboard name={displayName} records={records} loading={recordsLoading} navigate={go} allTools={()=>setMenu(true)}/> : <>
-        <div className="section-title page-title"><div><h1>{pages[page].name}</h1></div></div>
-        {page === 1 && <CameraTool key={opened?.id ?? 'measure'} mode="measurement" initial={opened} save={save}/>}
+        {page !== 1 && <div className="section-title page-title"><div><h1>{pages[page].name}</h1></div></div>}
+        {page === 1 && <MeasurementTool key={opened?.id ?? 'measure'} initial={opened} signedIn={Boolean(user)} save={save}/>}
         {page === 2 && <CameraTool key={opened?.id ?? 'count'} mode="materials" initial={opened} save={save}/>}
         {page === 3 && <Planner key={(opened?.id??'plan')+user} initial={opened} save={save} owner={profile?String(profile.id):'offline'}/>}
         {page === 4 && <Estimate key={opened?.id ?? 'estimate'} initial={opened} save={save}/>}

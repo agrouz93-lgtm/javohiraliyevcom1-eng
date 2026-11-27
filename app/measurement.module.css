@@ -1,0 +1,411 @@
+.measurement-workbench {
+  --measure-line: #55427f;
+  --measure-muted: #b5b9d4;
+  position: relative;
+  isolation: isolate;
+  max-width: 90rem;
+  min-height: min(48rem, 85svh);
+  margin-inline: auto;
+  padding: clamp(0px, 1.1vw, 15px);
+  color: #f7f3ff;
+}
+.measurement-workbench::before {
+  position: absolute;
+  z-index: -1;
+  inset: -16px -12px 0;
+  border-radius: 30px;
+  background:
+    radial-gradient(ellipse at 88% 7%, #5d2ac643, transparent 37%),
+    radial-gradient(ellipse at 12% 96%, #422d993e, transparent 35%),
+    linear-gradient(131deg, #14182d, #0a0d18 57%, #151023);
+  content: '';
+}
+.measurement-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  min-height: 112px;
+  padding: clamp(8px, 1.3vw, 22px) 0 18px;
+  overflow: hidden;
+}
+.measurement-hero::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 -20px auto;
+  width: min(52%, 35rem);
+  background:
+    radial-gradient(ellipse at 65% 88%, #6c38c764, transparent 50%),
+    linear-gradient(#716eb02a 1px, transparent 1px) 0 0 / 20px 20px,
+    linear-gradient(90deg, #716eb02a 1px, transparent 1px) 0 0 / 20px 20px;
+  mask-image: linear-gradient(90deg, transparent, #000 36%, #000 84%, transparent);
+  opacity: .72;
+  content: '';
+}
+.measurement-blueprint {
+  position: absolute;
+  z-index: -1;
+  inset: 0 5% 0 auto;
+  width: min(29%, 19rem);
+  color: #b3a3fb;
+  opacity: .44;
+  filter: drop-shadow(0 0 9px #a467f2);
+}
+.measurement-blueprint i {
+  position: absolute;
+  display: block;
+  border: 1px solid currentColor;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 10px, #9a8be132 10px 11px),
+    repeating-linear-gradient(90deg, transparent 0 15px, #9a8be132 15px 16px);
+}
+.measurement-blueprint i:first-child { inset: 43% 33% 16% 5%; transform: skewY(-10deg); }
+.measurement-blueprint i:nth-child(2) { inset: 43% 4% 16% 67%; transform: skewY(20deg); }
+.measurement-blueprint i:last-child {
+  inset: 10% 18% 50% 17%;
+  transform: rotate(-9deg) skewX(-47deg);
+  border-top-color: #e6d6ff;
+}
+.measurement-hero-symbol {
+  display: grid;
+  flex: 0 0 56px;
+  height: 56px;
+  place-items: center;
+  border: 1px solid #7960ba77;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #252945, #1c1232);
+  color: #e2d2ff;
+  box-shadow: inset 0 1px 1px #fff2, 0 8px 24px #05050c88;
+}
+.measurement-hero h1 {
+  margin: 0;
+  font-size: clamp(1.55rem, 3.25vw, 3.1rem);
+  font-weight: 780;
+  line-height: 1.13;
+  letter-spacing: -.035em;
+}
+.measurement-hero p, .measurement-help {
+  color: var(--measure-muted);
+  font-size: .93rem;
+  line-height: 1.52;
+}
+.measurement-hero p { margin: 7px 0 0; }
+.measurement-tabs, .measurement-mini-switch {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid #46385f;
+  border-radius: 13px;
+  background: #0b101bcc;
+}
+.measurement-tabs { margin: 0 0 19px; }
+.measurement-workbench button {
+  min-height: 42px;
+  border: 1px solid #4e416d;
+  border-radius: 10px;
+  background: linear-gradient(150deg, #27263e, #17192c);
+  color: #f8f4ff;
+  white-space: normal;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.measurement-workbench button svg { flex-shrink: 0; }
+.measurement-workbench button:focus-visible, .measurement-workbench input:focus-visible, .measurement-workbench textarea:focus-visible {
+  outline: 2px solid #d2afff;
+  outline-offset: 3px;
+}
+.measurement-workbench button:not(:disabled):hover { border-color: #ad80fb; box-shadow: 0 4px 18px #8251db37; }
+.measurement-workbench button:not(:disabled):active { transform: translateY(1px) scale(.98); }
+.measurement-workbench button:disabled { opacity: .48; }
+.measurement-workbench .measurement-primary, .measurement-workbench button[aria-pressed='true'] {
+  border-color: #a576f7;
+  background: linear-gradient(130deg, #8251e5, #5d2bb3 78%);
+  box-shadow: inset 0 1px 0 #e1bdff66, 0 6px 18px #6d35c846;
+  color: #fff;
+}
+.measurement-tabs button, .measurement-mini-switch button { border-color: transparent; background: transparent; justify-content: center; }
+.measurement-mini-switch button { min-height: 34px; padding: 4px 9px; font-size: .82rem; }
+.measurement-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.63fr) minmax(17rem, 1fr);
+  gap: clamp(12px, 1.8vw, 24px);
+  align-items: start;
+}
+.measurement-card {
+  min-width: 0;
+  padding: clamp(12px, 1.5vw, 22px);
+  border: 1px solid var(--measure-line);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #21243ae8, #141626ea 70%, #20162ed9);
+  box-shadow: inset 0 1px 1px #b397ec21, 0 14px 38px #03031148;
+  backdrop-filter: blur(16px);
+}
+.measurement-card h2, .measurement-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 15px;
+  line-height: 1.3;
+  font-size: clamp(1.02rem, 1.65vw, 1.42rem);
+  font-weight: 740;
+}
+.measurement-card h2 svg { color: #e3d0ff; }
+.measurement-capture-actions, .measurement-result-actions, .measurement-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.measurement-capture-actions { margin-bottom: 14px; }
+.measurement-capture-guide { margin: 0 0 12px; color: #c8bddf; font-size: .84rem; line-height: 1.45; }
+.measurement-paper-reference { margin-top: 10px; }
+.measurement-paper-reference label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e4d6f9;
+  font-size: .88rem;
+  cursor: pointer;
+}
+.measurement-paper-reference input { width: 17px; height: 17px; margin: 0; flex: 0 0 auto; accent-color: #a177fc; }
+.measurement-workbench .measurement-delete {
+  margin-inline-start: auto;
+  border-color: #b15467;
+  background: #55233861;
+  color: #ffb1ba;
+}
+.measurement-workbench .measurement-delete:not(:disabled):hover { border-color: #f58699; box-shadow: 0 4px 14px #ee5b6a33; }
+.measurement-viewer {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #565168;
+  border-radius: 14px;
+  background: #0b0e1a;
+}
+.measurement-stage {
+  --measurement-stage-height: min(62svh, 540px);
+  position: relative;
+  max-height: var(--measurement-stage-height);
+  overflow: auto;
+  border-radius: 9px;
+  background:
+    linear-gradient(#8c80cf19 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, #8c80cf19 1px, transparent 1px) 0 0 / 24px 24px,
+    radial-gradient(ellipse, #282346, #111427);
+  overscroll-behavior: contain;
+}
+.measurement-surface {
+  position: relative;
+  width: min(calc(100% * var(--measurement-zoom)), calc(var(--measurement-stage-height) * var(--measurement-ratio) * var(--measurement-zoom)));
+  margin-inline: auto;
+  aspect-ratio: var(--measurement-ratio);
+}
+.measurement-surface > img, .measurement-overlay { position: absolute; inset: 0; width: 100%; height: 100%; }
+.measurement-surface > img { object-fit: fill; user-select: none; }
+.measurement-surface.is-editing .measurement-overlay { touch-action: none; cursor: crosshair; }
+.measurement-video { display: block; width: 100%; max-height: var(--measurement-stage-height); object-fit: contain; }
+.measurement-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+  color: var(--measure-muted);
+  font-size: .85rem;
+}
+.measurement-empty svg { color: #d2b4ff; margin-bottom: 4px; }
+.measurement-empty strong { font-size: 1rem; color: #f0eaff; }
+.measurement-boundary, .measurement-reference {
+  fill: #9c63fa22;
+  stroke: #d8adff;
+  stroke-width: 2.3;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 2px #d2a5ff) drop-shadow(0 0 5px #944aff);
+  animation: measurement-appear .35s ease both;
+}
+.measurement-reference { fill: none; stroke: #ffdd82; stroke-width: 1.7; stroke-dasharray: 5 3; filter: none; }
+.measurement-partial-boundary { fill: none; stroke-width: 2.7; stroke-dasharray: 6 4; stroke-linecap: round; }
+.measurement-partial-label {
+  position: absolute;
+  inset: 8px auto auto 8px;
+  padding: 5px 8px;
+  border: 1px solid #b992ef;
+  border-radius: 8px;
+  background: #19132eec;
+  color: #f7eaff;
+  font-size: .75rem;
+  pointer-events: none;
+}
+.measurement-corner, .measurement-reference-point { fill: #fff; stroke: #a761ff; stroke-width: 1.25; vector-effect: non-scaling-stroke; }
+.measurement-reference-point { fill: #ffdd82; stroke: #53351e; }
+.measurement-reference-number { fill: #ffebac; font-size: 4px; paint-order: stroke; stroke: #32213a; stroke-width: .48px; }
+.measurement-overlay [tabindex]:focus-visible { outline: 2px solid #f6dfff; outline-offset: 2px; }
+.measurement-side-value, .measurement-photo-area {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  border: 1px solid #be91fa;
+  background: #18132deb;
+  color: #fff;
+  box-shadow: 0 3px 12px #0009;
+}
+.measurement-side-value { transform: translate(-50%, -50%); border-radius: 6px; padding: 2px 6px; font-size: clamp(.65rem, 1.4vw, .9rem); }
+.measurement-photo-area {
+  z-index: 2;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  gap: 3px;
+  min-width: min(55%, 145px);
+  max-width: 90%;
+  padding: 9px 13px;
+  border-radius: 12px;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  animation: measurement-appear .3s ease both;
+}
+.measurement-photo-area span { color: #dec9ff; font-size: clamp(.65rem, 1.2vw, .84rem); }
+.measurement-photo-area strong { font-size: clamp(1.16rem, 3vw, 2.1rem); line-height: 1.1; }
+.measurement-photo-size { color: #efe2ff; font-size: clamp(.75rem, 1.5vw, 1rem); font-weight: 700; line-height: 1.3; }
+.measurement-view-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; padding: 8px 1px 1px; }
+.measurement-view-actions button { width: 43px; min-height: 43px; justify-content: center; padding: 0; }
+.measurement-view-actions .measurement-fullscreen { margin-inline-start: auto; }
+.measurement-viewer.is-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom));
+  border-radius: 0;
+}
+.measurement-overlay-root { position: fixed; inset: 0; z-index: 150; max-width: none; margin: 0; padding: 0; }
+.measurement-overlay-root::before { display: none; }
+.measurement-viewer.is-expanded .measurement-stage { --measurement-stage-height: calc(100svh - 86px); }
+.measurement-scan { position: absolute; inset: 0; z-index: 3; overflow: hidden; background: #4f23a329; pointer-events: none; }
+.measurement-scan span {
+  position: absolute;
+  inset: auto 10px 10px;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: #100c22ed;
+  color: #f3e5ff;
+  text-align: center;
+  font-size: .8rem;
+}
+.measurement-scan::after {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: #e4c2ff;
+  box-shadow: 0 0 16px 5px #a750ff;
+  animation: measurement-sweep 1.55s ease-in-out infinite alternate;
+  content: '';
+}
+@keyframes measurement-sweep { from {top: 7%} to {top: 90%} }
+@keyframes measurement-appear { from {opacity: 0} to {opacity: 1} }
+.measurement-auto-guide { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 12px; }
+.measurement-auto-guide p { flex: 1 1 15rem; margin: 0; font-size: .84rem; }
+.measurement-auto-guide button { flex: 0 1 auto; font-size: .85rem; }
+.measurement-options { margin-top: 12px; }
+.measurement-calibration-panel {
+  margin-top: 15px;
+  padding: 12px;
+  border: 1px solid #483b62;
+  border-radius: 12px;
+  background: #111323a0;
+}
+.measurement-calibration-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.measurement-calibration-header h3 { margin: 0; font-size: 1rem; }
+.measurement-edit-actions button { min-height: 36px; font-size: .8rem; }
+.measurement-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); gap: 10px; margin: 12px 0 0; }
+.measurement-fields label, .measurement-share-text { min-width: 0; color: #d6d2ee; }
+.measurement-fields input, .measurement-share-text textarea {
+  width: 100%; min-height: 43px; border-color: #514668; background: #111424; color: #fff;
+}
+.measurement-status {
+  margin: 8px 0 12px;
+  padding: 9px 11px;
+  border-inline-start: 3px solid #a481e5;
+  border-radius: 5px;
+  background: #3e2d682c;
+  color: #e6daf9;
+  line-height: 1.45;
+}
+.measurement-area {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 13px;
+  gap: 4px;
+  border: 1px solid #8d68cc;
+  border-radius: 14px;
+  padding: 16px;
+  background: radial-gradient(ellipse at 89% 106%, #9753eea0, transparent 72%), linear-gradient(120deg, #382356, #26224b);
+  box-shadow: inset 0 1px 1px #d1a3ff32, 0 7px 24px #43268030;
+}
+.measurement-area svg { grid-row: span 2; align-self: center; color: #e4b7ff; filter: drop-shadow(0 0 9px #ba6aff); }
+.measurement-area small { grid-column: 1 / -1; margin-top: 2px; }
+.measurement-area .measurement-room-size { grid-column: 2; font-size: 1rem; font-weight: 720; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.measurement-area span, .measurement-area small { color: #e1d4fb; line-height: 1.45; }
+.measurement-area strong { font-size: clamp(1.85rem, 4vw, 3.05rem); font-variant-numeric: tabular-nums; line-height: 1.1; overflow-wrap: anywhere; animation: measurement-appear .28s ease both; }
+.measurement-metrics { margin: 14px 0; padding: 1px 12px; border: 1px solid #413958; border-radius: 12px; background: #10132288; }
+.measurement-metrics > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 43px; padding-block: 7px; }
+.measurement-metrics > div + div { border-top: 1px solid #483c616b; }
+.measurement-metrics dt { display: flex; align-items: center; gap: 7px; color: #dcdaef; font-size: .88rem; }
+.measurement-metrics dt svg { color: #c5abee; }
+.measurement-metrics dd { margin: 0; font-size: .88rem; font-weight: 650; text-align: right; overflow-wrap: anywhere; }
+.measurement-results .measurement-help { font-size: .82rem; }
+.measurement-result-actions button { flex: 1 1 auto; min-height: 46px; justify-content: center; }
+.measurement-panel-fields {
+  min-width: 0;
+  margin: 6px 0 0;
+  padding: 6px 12px 12px;
+  border: 1px solid #4c3d6b;
+  border-radius: 12px;
+  background: #141529;
+}
+.measurement-panel-entry { margin-top: 13px; }
+.measurement-panel-entry summary { padding: 9px 12px; border: 1px solid #4c3d6b; border-radius: 10px; color: #e4d6f9; cursor: pointer; font-size: .86rem; }
+.measurement-panel-fields legend { padding: 0 4px; color: #e4d6f9; font-size: .84rem; font-weight: 650; }
+.measurement-panel-fields .measurement-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+.measurement-panel-fields label { font-size: .82rem; }
+.measurement-sides { margin-bottom: 14px; color: #dfd5f1; }
+.measurement-sides summary { cursor: pointer; padding-block: 5px; }
+.measurement-sides ul { margin: 8px 0 0; padding: 0; list-style: none; }
+.measurement-sides li { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px solid #483c6177; padding: 6px 0; }
+.measurement-share-text { display: grid; margin-top: 12px; gap: 5px; }
+.measurement-share-text textarea { min-height: 8rem; }
+@media (max-width: 1150px) {
+  .measurement-layout { grid-template-columns: minmax(0, 1fr); }
+  .measurement-hero { min-height: 90px; }
+}
+@media (max-width: 650px) {
+  .measurement-workbench::before { inset: -8px -5px 0; border-radius: 16px; }
+  .measurement-hero { gap: 11px; min-height: 0; padding-bottom: 14px; }
+  .measurement-hero-symbol { flex-basis: 40px; height: 40px; border-radius: 11px; }
+  .measurement-hero-symbol svg { width: 21px; }
+  .measurement-hero p { font-size: .82rem; }
+  .measurement-blueprint { opacity: .17; }
+  .measurement-tabs { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 12px; }
+  .measurement-tabs button { padding-inline: 5px; font-size: .78rem; }
+  .measurement-capture-actions button { flex: 1 1 auto; justify-content: center; font-size: .82rem; }
+  .measurement-workbench .measurement-delete { margin-inline-start: 0; }
+  .measurement-workbench input, .measurement-workbench textarea { font-size: 16px; }
+  .measurement-side-value { padding-inline: 3px; }
+  .measurement-photo-area { min-width: 0; padding-inline: 9px; }
+  .measurement-card { border-radius: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .measurement-workbench *, .measurement-workbench *::after { animation: none !important; transition: none !important; }
+}

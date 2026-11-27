@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {detectRegions, arithmetic} from '../app/vision.mjs';
+import {detectRegions, detectPhotoRegions, suggestPhotoOutline, arithmetic} from '../app/vision.mjs';
 
 function image(width,height) {
   const data = new Uint8ClampedArray(width*height*4).fill(255);
@@ -33,8 +33,7 @@ test('Calculator and zero division',()=>{
   assert.equal(arithmetic(2.5,'+',1.5),4);
   assert.throws(()=>arithmetic(12,'÷',0));
 });
-test('Photo counting separates colored objects on a uniform background',async()=>{
-  const {detectPhotoRegions}=await import('../app/vision.mjs');
+test('Photo counting separates colored objects on a uniform background',()=>{
   const width=180,height=100;
   const data=new Uint8ClampedArray(width*height*4).fill(255);
   const colors=[[220,80,30],[50,120,220],[50,180,80]];
@@ -45,4 +44,38 @@ test('Photo counting separates colored objects on a uniform background',async()=
     }
   });
   assert.equal(detectPhotoRegions(data,width,height).length,3);
+});
+test('Photo counting retains separated light and dark objects', () => {
+  const {data, fill} = image(150, 120);
+  fill(15, 15, 35, 30, 225);
+  fill(60, 15, 35, 30, 25);
+  fill(105, 55, 25, 35, 60);
+  assert.equal(detectPhotoRegions(data, 150, 120).length, 3);
+});
+
+test('The suggested photo outline follows a rotated object and ignores small marks', () => {
+  const {data, fill} = image(100, 100);
+  fill(8, 8, 6, 6, 30);
+  for (let y = 20; y <= 80; y++) {
+    const half = 30 - Math.abs(y - 50);
+    fill(50 - half, y, 2 * half + 1, 1, 30);
+  }
+  const outline = suggestPhotoOutline(data, 100, 100);
+  assert.equal(outline.length, 4);
+  assert.ok(outline.every(point => Math.abs((Math.abs(point.x - .505) + Math.abs(point.y - .505)) * 100 - 30) <= 1.5));
+  assert.deepEqual(suggestPhotoOutline(image(100, 100).data, 100, 100), []);
+});
+
+test('An L-shaped footprint retains its inward corner and area', () => {
+  const {data, fill} = image(100, 100);
+  fill(20, 20, 60, 25, 25);
+  fill(20, 45, 35, 35, 25);
+  const outline = suggestPhotoOutline(data, 100, 100);
+  assert.equal(outline.length, 6);
+  assert.ok(outline.some(({x, y}) => x === .55 && y === .45));
+  const doubledArea = outline.reduce((sum, point, index) => {
+    const next = outline[(index + 1) % outline.length];
+    return sum + point.x * next.y - point.y * next.x;
+  }, 0);
+  assert.ok(Math.abs(doubledArea / 2 * 10000 - 2725) < 1e-8);
 });

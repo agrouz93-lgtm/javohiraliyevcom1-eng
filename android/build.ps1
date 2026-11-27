@@ -37,7 +37,7 @@ New-Item -ItemType Directory -Path "$build/classes","$build/dex" -Force | Out-Nu
 Invoke-BuildTool $aapt @('compile','--dir',"$PSScriptRoot/res",'-o',"$build/resources.zip")
 Invoke-BuildTool $aapt @('link','-o',"$build/raw.apk",'-I',$AndroidJar,
     '--manifest',"$PSScriptRoot/AndroidManifest.xml",
-    '--version-code','6','--version-name','1.4.0',"$build/resources.zip")
+    '--version-code','16','--version-name','1.4.10',"$build/resources.zip")
 Invoke-BuildTool "$Jdk/bin/javac.exe" @('--release','8','-encoding','UTF-8','-classpath',$AndroidJar,
     '-d',"$build/classes","$PSScriptRoot/src/uz/ustapro/MainActivity.java","$PSScriptRoot/src/uz/ustapro/CameraProvider.java")
 $classFiles = @(Get-ChildItem -LiteralPath "$build/classes" -Recurse -Filter '*.class' | ForEach-Object FullName)
