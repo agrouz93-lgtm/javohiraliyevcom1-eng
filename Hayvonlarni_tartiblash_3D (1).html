@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Animals Master</title>
+<style>
+:root{--ink:#0b2a5b;--c1:#fff;--c2:#d9efff;--hud:rgba(5,25,60,.55);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#e8f4ff;--c1:#1d3d66;--c2:#12294a;--hud:rgba(2,12,32,.7);color-scheme:dark}}
+:root[data-theme="dark"]{--ink:#e8f4ff;--c1:#1d3d66;--c2:#12294a;--hud:rgba(2,12,32,.7);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;color:#fff;overflow:hidden;background:#2a6fb5}
+.sky{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.au{animation:au 9s ease-in-out infinite alternate}
+@keyframes au{from{transform:translateX(-18px);opacity:.75}to{transform:translateX(18px);opacity:1}}
+canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.app{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.app>*{pointer-events:auto}
+h1{font-size:clamp(20px,5vw,32px);margin-top:10px;text-shadow:0 3px 0 rgba(5,25,60,.8);text-align:center;padding:0 10px;pointer-events:none}
+.bar,.lv{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center;padding:0 8px}
+.chip{background:var(--hud);border:2px solid rgba(255,255,255,.5);border-radius:16px;padding:6px 14px;font-weight:700;font-size:clamp(13px,3.4vw,17px);text-align:center}
+button{font:inherit;font-weight:800;color:#fff;background:linear-gradient(#ff9a3c,#f2650a);border:0;border-radius:16px;padding:8px 18px;cursor:pointer;box-shadow:0 4px 0 #a8420a;font-size:clamp(13px,3.4vw,17px)}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #a8420a}
+.lv button{background:var(--hud);box-shadow:none;border:2px solid rgba(255,255,255,.5);padding:5px 12px;font-size:clamp(12px,3.1vw,15px)}
+.lv button.on{background:linear-gradient(#ff9a3c,#f2650a);border-color:#fff}
+.msg{margin-top:8px;font-size:clamp(13px,3.3vw,16px);background:var(--hud);padding:5px 14px;border-radius:14px;text-align:center;max-width:94vw;pointer-events:none}
+.ov{position:fixed;inset:0;z-index:20;background:rgba(5,20,50,.65);display:none;align-items:center;justify-content:center;padding:16px}
+.ov.show{display:flex}
+.card{background:linear-gradient(var(--c1),var(--c2));color:var(--ink);border-radius:26px;padding:26px 30px;text-align:center;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,.4);animation:pop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+.card h2{font-size:30px;margin-bottom:8px}.card p{font-size:18px;margin:4px 0}.card button{margin-top:16px}
+.home{position:fixed;inset:0;z-index:15;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:10px;padding:16px;overflow:auto;background:var(--hb)}
+.home.hide{display:none}
+.ht{font-size:clamp(26px,7vw,46px);text-shadow:0 4px 0 var(--hsh,#0f3470);text-align:center}
+.hs{font-size:clamp(15px,4vw,20px);color:#e8f4ff;font-weight:700;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:12px;width:min(1100px,100%)}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:420px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ac{background:rgba(255,255,255,.85);border:5px solid #fff;border-radius:26px;color:#0b2a5b;padding:10px 6px 12px;text-align:center;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.18),0 10px 18px rgba(0,0,0,.15);transition:transform .2s;font-weight:800;font-size:clamp(15px,4vw,19px);transform:rotate(var(--r,0deg))}
+.ac:hover{transform:translateY(-6px) scale(1.06) rotate(0deg)}
+.ac img{width:100%;max-width:110px;aspect-ratio:240/260;object-fit:contain;display:block;margin:0 auto 4px;filter:drop-shadow(0 6px 4px rgba(0,0,0,.25))}
+.ac span{display:inline-block;background:#fff;border-radius:12px;padding:2px 14px;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.conf{position:fixed;top:-20px;width:10px;height:14px;z-index:30;pointer-events:none;animation:cf linear forwards}
+@keyframes cf{to{transform:translate(var(--dx),110vh) rotate(720deg)}}
+.home>:not(.flake):not(.bgs):not(.santa):not(.gear){position:relative;z-index:1}
+.bgs{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.santa{position:fixed;top:12vh;left:0;width:clamp(210px,34vw,360px);z-index:0;pointer-events:none;transform:translateX(-120%);animation:sf 10s linear infinite}
+@keyframes sf{0%{transform:translateX(-120%)}55%,100%{transform:translateX(calc(100vw + 20px))}}
+.sb{animation:sbob 1.2s ease-in-out infinite alternate}
+@keyframes sbob{from{transform:translateY(-6px)}to{transform:translateY(6px)}}
+.sm{transform-box:fill-box;transform-origin:center;opacity:0;animation:smk 3.2s ease-out infinite}
+@keyframes smk{0%{transform:translate(0,0) scale(.5);opacity:0}15%{opacity:.85}100%{transform:translate(20px,-64px) scale(2.1);opacity:0}}
+.flake{position:fixed;top:-12px;z-index:0;pointer-events:none;background:#fff;border-radius:50%;opacity:.85;animation:fl linear infinite}
+@keyframes fl{to{transform:translate(var(--dx),108vh)}}@keyframes fl3{0%{opacity:0}12%{opacity:.9}to{transform:translate(var(--dx),var(--dy)) rotate(300deg);opacity:.25}}
+@media(prefers-reduced-motion:reduce){.conf,.flake,.santa,.sm{display:none}.au{animation:none}}
+.home{--hb:linear-gradient(#1d4a8f,#6ea8e0 45%,#e8f5ff);--hsh:#0f3470;--m1:#9dbfe6;--m2:#7ea8da;--h1:#f4f9ff;--h2:#fff;--p1:#1f5a46;--p2:#256b53;--pcap:#fff;--rf:#fff;--rfs:#c9d9ee;--mcap:#fff;--fl1:#fff;--fl2:#fff}
+.home[data-s=bahor]{--hb:linear-gradient(#58b4ee,#a8dcf5 45%,#eafff0);--hsh:#1a6a9a;--m1:#a9cfe0;--m2:#8fc0a8;--h1:#86d65f;--h2:#6cc84a;--p1:#3fa24a;--p2:#4fb35a;--pcap:#ffc2dc;--rf:#c8553d;--rfs:#a8402c;--fl1:#ff8fb8;--fl2:#fff3a0;--cnd:none;--trd:inline;--b1:#ff8fb8;--b2:#fff}
+.home[data-s=yoz]{--hb:linear-gradient(#2a86e8,#6ec0ff 45%,#fff6c8);--hsh:#1a5aa0;--m1:#9ab9d9;--m2:#7fae8c;--h1:#8fdc5a;--h2:#78cc44;--p1:#2e8b3a;--p2:#3a9a46;--pcap:#4bc457;--rf:#b84a32;--rfs:#923a28;--fl1:#ffd23f;--fl2:#ff6b6b;--cnd:none;--trd:inline;--b1:#d7261e;--b2:#f2c01c}
+.home[data-s=kuz]{--hb:linear-gradient(#d9602a,#f4a468 45%,#fff0d0);--hsh:#8a3a10;--m1:#d2a98a;--m2:#b98a62;--h1:#e0b862;--h2:#d4a64c;--p1:#c2561e;--p2:#d9731e;--pcap:#f2b42e;--rf:#8a3b2a;--rfs:#6a2a1c;--fl1:#ff8a1f;--fl2:#c0392b;--cnd:none;--trd:inline;--b1:#f2b42e;--b2:#b3301f}
+.cnf{display:var(--cnd,inline)}.rtr{display:var(--trd,none)}.bl1{fill:var(--b1,#ff8fb8);display:var(--bd,inline)}.bl2{fill:var(--b2,#fff);display:var(--bd,inline)}.m1{fill:var(--m1)}.m2{fill:var(--m2)}.h1{fill:var(--h1)}.h2{fill:var(--h2)}.p1{fill:var(--p1)}.p2{fill:var(--p2)}.pc{fill:var(--pcap)}.mc{fill:var(--mcap)}.rf{fill:var(--rf);stroke:var(--rfs);stroke-width:3}
+.home[data-s=yoz] .mc,.home[data-s=kuz] .mc{display:none}
+.so,.fl,.sfl{display:none}.home[data-s=bahor] .sfl{display:block}
+.home[data-s]:not([data-s=qish]) .so,.home[data-s]:not([data-s=qish]) .fl{display:block}
+.home[data-s]:not([data-s=qish]) .wo,.home[data-s]:not([data-s=qish]) .santa{display:none}
+body[data-s]:not([data-s=qish]) .sky .so{display:block}
+body[data-s]:not([data-s=qish]) .sky .wo{display:none}
+.cl{animation:cl 80s linear infinite}
+@keyframes cl{from{transform:translateX(-260px)}to{transform:translateX(1060px)}}
+.gear{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:12px;z-index:5;padding:8px 14px;font-size:22px;line-height:1}
+.sb2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.sb2 button{margin-top:0;background:rgba(255,255,255,.75);color:#0b2a5b;box-shadow:0 3px 0 rgba(0,0,0,.18);border:3px solid transparent;font-size:18px;padding:12px 10px}
+.sb2 button.on{border-color:#ff8a1f;background:#fff}.sb2.lg{grid-template-columns:repeat(3,1fr);gap:10px}.sb2.lg button{font-size:16px;padding:10px 6px}
+.sb2 button span{display:block;font-size:34px;line-height:1.2}
+.home[data-s]:not([data-s=qish]) .sm{display:none}
+@media(prefers-reduced-motion:reduce){.cl{animation:none}}
+#st .card{max-height:92vh;overflow:auto}#howT{font-weight:800;margin-top:12px}
+.msg:empty{display:none}
+</style>
+</head>
+<body>
+<svg class="sky" viewBox="0 0 800 600" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5dffb0" stop-opacity="0"/><stop offset=".5" stop-color="#5dffb0" stop-opacity=".55"/><stop offset="1" stop-color="#8a7dff" stop-opacity="0"/></linearGradient><filter id="bl"><feGaussianBlur stdDeviation="14"/></filter></defs>
+<g class="wo"><g filter="url(#bl)"><g class="au"><path d="M-40 150Q150 40 300 120T620 90T860 140V260Q650 200 520 250T260 230T-40 280Z" fill="url(#ag)"/><path d="M-40 80Q200 0 380 60T860 40V160Q620 120 430 150T-40 180Z" fill="url(#ag)" opacity=".6"/></g></g>
+<circle cx="670" cy="100" r="64" fill="#fff6c8" opacity=".14"/><circle cx="670" cy="100" r="36" fill="#fff8d8"/><circle cx="660" cy="92" r="6" fill="#efe3b4"/><circle cx="682" cy="112" r="4" fill="#efe3b4"/><circle cx="676" cy="88" r="3" fill="#efe3b4"/>
+<g fill="#fff" opacity=".9"><circle cx="60" cy="50" r="2"/><circle cx="140" cy="120" r="1.5"/><circle cx="220" cy="40" r="2.2"/><circle cx="310" cy="90" r="1.5"/><circle cx="400" cy="30" r="1.8"/><circle cx="480" cy="110" r="1.5"/><circle cx="560" cy="55" r="2"/><circle cx="760" cy="170" r="1.6"/><circle cx="30" cy="190" r="1.6"/><circle cx="350" cy="180" r="1.4"/><circle cx="600" cy="170" r="1.4"/><circle cx="110" cy="260" r="1.3"/></g></g><g class="so"><circle cx="670" cy="110" r="76" fill="#fff6a8" opacity=".25"/><circle cx="670" cy="110" r="44" fill="#fff3a0"/><g class="cl"><ellipse cx="120" cy="120" rx="52" ry="16" fill="#fff" opacity=".92"/><ellipse cx="154" cy="106" rx="34" ry="16" fill="#fff" opacity=".92"/><ellipse cx="92" cy="110" rx="30" ry="14" fill="#fff" opacity=".92"/></g><g class="cl" style="animation-delay:-45s"><ellipse cx="120" cy="220" rx="44" ry="13" fill="#fff" opacity=".85"/><ellipse cx="148" cy="209" rx="28" ry="13" fill="#fff" opacity=".85"/></g></g></svg>
+<canvas id="c"></canvas>
+<div class="app">
+<h1 id="ttl">🐧 Pingvinlarni tartiblash</h1>
+<div class="bar">
+<div class="chip">🔄 <span data-i="moves">Yurishlar:</span> <span id="mv">0</span><span id="lim"></span></div>
+<div class="chip">⏱️ <span id="tm">00:00</span></div>
+<div class="chip">🏆 <span id="bst">—</span></div>
+<button id="hm" data-i="home">🏠 Bosh sahifa</button><button id="rs" data-i="restart">Qayta boshlash</button><button id="mn">☰ Menyu</button><button id="zo" data-ti="zoomOut" title="Uzoqlashtirish">−</button><button id="zi" data-ti="zoomIn" title="Yaqinlashtirish">+</button>
+</div>
+<div class="lv" id="lv"></div>
+<div class="msg" id="msg"></div>
+</div>
+<div class="ov" id="ov"><div class="card">
+<h2 id="oh"></h2><p id="op"></p>
+<p><span data-i="moves">Yurishlar:</span> <b id="wm"></b></p><p><span data-i="time">Vaqt:</span> <b id="wt"></b></p><p id="wr"></p>
+<button id="again" data-i="again">Yana o‘ynash</button>
+</div></div>
+<div class="ov" id="st"><div class="card"><h2 data-i="settings">⚙️ Sozlamalar</h2><p data-i="pickLang">Til tanlang</p><div class="sb2 lg" id="lgs"></div><p data-i="pickSeason">Fasl tanlang</p><div class="sb2" id="sbs"></div><p id="howT"></p><p id="how" style="font-size:15px;opacity:.9"></p><button id="stc" data-i="done">Tayyor</button></div></div>
+<div class="home" id="home"><svg class="bgs" viewBox="0 0 800 600" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><g id="pn"><g class="cnf"><rect x="-4" y="0" width="8" height="16" fill="#5a3c25"/><path class="p1" d="M0-70L26-26H-26Z"/><path class="p2" d="M0-48L32-4H-32Z"/><path class="p1" d="M0-26L38 16H-38Z"/><path class="pc" d="M0-70L11-52Q0-47-11-52Z"/><path class="pc" d="M0-48L15-28Q0-22-15-28Z"/><path class="pc" d="M0-26L20-4Q0 3-20-4Z"/></g><g class="rtr"><rect x="-5" y="-6" width="10" height="22" fill="#5a3c25"/><circle class="p1" cx="0" cy="-40" r="30"/><circle class="p2" cx="-22" cy="-22" r="20"/><circle class="p2" cx="22" cy="-22" r="20"/><circle class="p2" cx="0" cy="-58" r="18"/><circle class="bl1" cx="-12" cy="-52" r="4.5"/><circle class="bl2" cx="10" cy="-62" r="4"/><circle class="bl1" cx="16" cy="-44" r="4.5"/><circle class="bl2" cx="-24" cy="-38" r="4"/><circle class="bl1" cx="0" cy="-34" r="4.5"/><circle class="bl2" cx="-30" cy="-18" r="4"/><circle class="bl1" cx="30" cy="-24" r="4.5"/><circle class="bl2" cx="22" cy="-8" r="4"/><circle class="bl1" cx="-16" cy="-10" r="4.5"/><circle class="bl2" cx="6" cy="-18" r="4"/></g></g></defs>
+<g class="wo"><circle cx="690" cy="95" r="70" fill="#fff6c8" opacity=".18"/><circle cx="690" cy="95" r="38" fill="#fff6c8"/><g fill="#fff" opacity=".85"><circle cx="90" cy="70" r="2"/><circle cx="210" cy="130" r="1.6"/><circle cx="330" cy="60" r="2.2"/><circle cx="470" cy="120" r="1.6"/><circle cx="560" cy="50" r="2"/><circle cx="760" cy="190" r="1.6"/><circle cx="40" cy="200" r="1.8"/></g></g>
+<g class="so"><circle cx="690" cy="95" r="84" fill="#fff6a8" opacity=".22"/><circle cx="690" cy="95" r="44" fill="#fff3a0"/><g class="cl"><ellipse cx="120" cy="110" rx="48" ry="15" fill="#fff"/><ellipse cx="152" cy="98" rx="32" ry="15" fill="#fff"/><ellipse cx="92" cy="100" rx="28" ry="13" fill="#fff"/></g><g class="cl" style="animation-delay:-40s"><ellipse cx="120" cy="190" rx="40" ry="12" fill="#fff" opacity=".9"/><ellipse cx="146" cy="180" rx="26" ry="12" fill="#fff" opacity=".9"/></g></g>
+<path class="m1" d="M0 430L110 300L190 380L300 250L420 390L520 290L640 400L730 320L800 380V600H0Z"/>
+<path class="mc" d="M300 250L274 288L290 282L302 296L316 281L328 290Z M110 300L86 330L102 324L112 336L126 323L136 334Z M520 290L496 324L510 318L522 330L535 317L546 328Z M730 320L710 346L724 341L732 350L744 340L752 347Z"/>
+<path class="m2" d="M0 480L120 400L240 470L380 380L520 470L660 400L800 470V600H0Z"/>
+<path class="h1" d="M0 520Q150 470 300 515T600 505T800 500V600H0Z"/>
+<use href="#pn" transform="translate(330 505) scale(.5)"/><use href="#pn" transform="translate(365 510) scale(.38)"/><use href="#pn" transform="translate(470 500) scale(.45)"/>
+<path class="h2" d="M0 560Q200 520 420 555T800 545V600H0Z"/>
+<g class="sfl"><path d="M473 583L469 573L472 579L474 571L476 579L480 574L478 583Z" fill="#5cc247"/><path d="M472 577L468 567L471 573L473 565L475 573L479 568L477 577Z" fill="#3b9630"/><path d="M204 535L200 525L203 531L205 523L207 531L211 526L209 535Z" fill="#3b9630"/><path d="M497 592L493 582L496 588L498 580L500 588L504 583L502 592Z" fill="#3b9630"/><path d="M200 524L196 514L199 520L201 512L203 520L207 515L205 524Z" fill="#5cc247"/><path d="M320 530L316 520L319 526L321 518L323 526L327 521L325 530Z" fill="#4aa83a"/><path d="M561 593L557 583L560 589L562 581L564 589L568 584L566 593Z" fill="#4aa83a"/><path d="M619 562L615 552L618 558L620 550L622 558L626 553L624 562Z" fill="#5cc247"/><path d="M679 590L675 580L678 586L680 578L682 586L686 581L684 590Z" fill="#3b9630"/><path d="M171 591L167 581L170 587L172 579L174 587L178 582L176 591Z" fill="#4aa83a"/><path d="M551 520L547 510L550 516L552 508L554 516L558 511L556 520Z" fill="#4aa83a"/><path d="M46 536L42 526L45 532L47 524L49 532L53 527L51 536Z" fill="#4aa83a"/><path d="M624 515L620 505L623 511L625 503L627 511L631 506L629 515Z" fill="#5cc247"/><path d="M344 568L340 558L343 564L345 556L347 564L351 559L349 568Z" fill="#3b9630"/><path d="M210 578L206 568L209 574L211 566L213 574L217 569L215 578Z" fill="#4aa83a"/><path d="M665 549L661 539L664 545L666 537L668 545L672 540L670 549Z" fill="#5cc247"/><path d="M14 596L10 586L13 592L15 584L17 592L21 587L19 596Z" fill="#4aa83a"/><path d="M478 595L474 585L477 591L479 583L481 591L485 586L483 595Z" fill="#5cc247"/><path d="M426 582L422 572L425 578L427 570L429 578L433 573L431 582Z" fill="#4aa83a"/><path d="M734 544L730 534L733 540L735 532L737 540L741 535L739 544Z" fill="#5cc247"/><path d="M786 541L782 531L785 537L787 529L789 537L793 532L791 541Z" fill="#3b9630"/><path d="M305 515L301 505L304 511L306 503L308 511L312 506L310 515Z" fill="#4aa83a"/><path d="M586 525L582 515L585 521L587 513L589 521L593 516L591 525Z" fill="#5cc247"/><path d="M120 549L116 539L119 545L121 537L123 545L127 540L125 549Z" fill="#5cc247"/><path d="M78 514L74 504L77 510L79 502L81 510L85 505L83 514Z" fill="#3b9630"/><path d="M10 539L6 529L9 535L11 527L13 535L17 530L15 539Z" fill="#4aa83a"/><path d="M63 572L59 562L62 568L64 560L66 568L70 563L68 572Z" fill="#5cc247"/><path d="M735 562L731 552L734 558L736 550L738 558L742 553L740 562Z" fill="#5cc247"/><path d="M84 584L80 574L83 580L85 572L87 580L91 575L89 584Z" fill="#3b9630"/><path d="M213 598L209 588L212 594L214 586L216 594L220 589L218 598Z" fill="#5cc247"/><path d="M354 523L350 513L353 519L355 511L357 519L361 514L359 523Z" fill="#5cc247"/><path d="M350 513L346 503L349 509L351 501L353 509L357 504L355 513Z" fill="#5cc247"/><path d="M786 527L782 517L785 523L787 515L789 523L793 518L791 527Z" fill="#4aa83a"/><path d="M262 524L258 514L261 520L263 512L265 520L269 515L267 524Z" fill="#4aa83a"/><path d="M71 571L67 561L70 567L72 559L74 567L78 562L76 571Z" fill="#5cc247"/><path d="M191 583L187 573L190 579L192 571L194 579L198 574L196 583Z" fill="#4aa83a"/><path d="M468 577L464 567L467 573L469 565L471 573L475 568L473 577Z" fill="#4aa83a"/><path d="M759 528L755 518L758 524L760 516L762 524L766 519L764 528Z" fill="#5cc247"/><path d="M669 561L665 551L668 557L670 549L672 557L676 552L674 561Z" fill="#4aa83a"/><path d="M414 565L410 555L413 561L415 553L417 561L421 556L419 565Z" fill="#4aa83a"/><path d="M10 546L6 536L9 542L11 534L13 542L17 537L15 546Z" fill="#3b9630"/><path d="M321 514L317 504L320 510L322 502L324 510L328 505L326 514Z" fill="#4aa83a"/><path d="M201 562L197 552L200 558L202 550L204 558L208 553L206 562Z" fill="#3b9630"/><path d="M667 585L663 575L666 581L668 573L670 581L674 576L672 585Z" fill="#4aa83a"/><path d="M53 530L49 520L52 526L54 518L56 526L60 521L58 530Z" fill="#4aa83a"/><path d="M462 545L458 535L461 541L463 533L465 541L469 536L467 545Z" fill="#4aa83a"/><path d="M634 554L630 544L633 550L635 542L637 550L641 545L639 554Z" fill="#5cc247"/><path d="M405 521L401 511L404 517L406 509L408 517L412 512L410 521Z" fill="#4aa83a"/><path d="M102 538L98 528L101 534L103 526L105 534L109 529L107 538Z" fill="#3b9630"/><path d="M661 543L657 533L660 539L662 531L664 539L668 534L666 543Z" fill="#4aa83a"/><path d="M625 559L621 549L624 555L626 547L628 555L632 550L630 559Z" fill="#5cc247"/><path d="M647 570L643 560L646 566L648 558L650 566L654 561L652 570Z" fill="#4aa83a"/><path d="M611 573L607 563L610 569L612 561L614 569L618 564L616 573Z" fill="#3b9630"/><path d="M148 561L144 551L147 557L149 549L151 557L155 552L153 561Z" fill="#4aa83a"/><path d="M652 531L648 521L651 527L653 519L655 527L659 522L657 531Z" fill="#5cc247"/><path d="M243 590L239 580L242 586L244 578L246 586L250 581L248 590Z" fill="#4aa83a"/><path d="M752 536L748 526L751 532L753 524L755 532L759 527L757 536Z" fill="#4aa83a"/><path d="M767 592L763 582L766 588L768 580L770 588L774 583L772 592Z" fill="#3b9630"/><path d="M211 561L207 551L210 557L212 549L214 557L218 552L216 561Z" fill="#5cc247"/><path d="M628 522L624 512L627 518L629 510L631 518L635 513L633 522Z" fill="#5cc247"/><path d="M58 525L54 515L57 521L59 513L61 521L65 516L63 525Z" fill="#4aa83a"/><path d="M49 577L45 567L48 573L50 565L52 573L56 568L54 577Z" fill="#5cc247"/><path d="M254 562L250 552L253 558L255 550L257 558L261 553L259 562Z" fill="#5cc247"/><path d="M440 588L436 578L439 584L441 576L443 584L447 579L445 588Z" fill="#5cc247"/><path d="M310 578L306 568L309 574L311 566L313 574L317 569L315 578Z" fill="#4aa83a"/><path d="M747 520L743 510L746 516L748 508L750 516L754 511L752 520Z" fill="#4aa83a"/><path d="M243 573L239 563L242 569L244 561L246 569L250 564L248 573Z" fill="#3b9630"/><path d="M679 590L675 580L678 586L680 578L682 586L686 581L684 590Z" fill="#3b9630"/><path d="M85 547L81 537L84 543L86 535L88 543L92 538L90 547Z" fill="#4aa83a"/><path d="M218 514L214 504L217 510L219 502L221 510L225 505L223 514Z" fill="#4aa83a"/><path d="M285 564L281 554L284 560L286 552L288 560L292 555L290 564Z" fill="#5cc247"/><path d="M265 519L261 509L264 515L266 507L268 515L272 510L270 519Z" fill="#4aa83a"/><path d="M190 548L186 538L189 544L191 536L193 544L197 539L195 548Z" fill="#5cc247"/><path d="M553 585L549 575L552 581L554 573L556 581L560 576L558 585Z" fill="#4aa83a"/><path d="M104 558L100 548L103 554L105 546L107 554L111 549L109 558Z" fill="#4aa83a"/><path d="M471 554L467 544L470 550L472 542L474 550L478 545L476 554Z" fill="#3b9630"/><path d="M760 578L756 568L759 574L761 566L763 574L767 569L765 578Z" fill="#3b9630"/><path d="M153 587L149 577L152 583L154 575L156 583L160 578L158 587Z" fill="#4aa83a"/><path d="M28 572L24 562L27 568L29 560L31 568L35 563L33 572Z" fill="#5cc247"/><path d="M727 551L723 541L726 547L728 539L730 547L734 542L732 551Z" fill="#4aa83a"/><path d="M31 588L27 578L30 584L32 576L34 584L38 579L36 588Z" fill="#3b9630"/><path d="M86 573L82 563L85 569L87 561L89 569L93 564L91 573Z" fill="#4aa83a"/><path d="M758 551L754 541L757 547L759 539L761 547L765 542L763 551Z" fill="#5cc247"/><path d="M149 521L145 511L148 517L150 509L152 517L156 512L154 521Z" fill="#4aa83a"/><path d="M473 581L469 571L472 577L474 569L476 577L480 572L478 581Z" fill="#5cc247"/><path d="M764 517L760 507L763 513L765 505L767 513L771 508L769 517Z" fill="#3b9630"/><path d="M764 528L760 518L763 524L765 516L767 524L771 519L769 528Z" fill="#5cc247"/><path d="M370 522L366 512L369 518L371 510L373 518L377 513L375 522Z" fill="#3b9630"/><path d="M494 521L490 511L493 517L495 509L497 517L501 512L499 521Z" fill="#5cc247"/><path d="M40 575L36 565L39 571L41 563L43 571L47 566L45 575Z" fill="#3b9630"/><circle cx="339" cy="531" r="4.5" fill="#ffd23f"/><circle cx="57" cy="521" r="3" fill="#ff7eb6"/><circle cx="604" cy="519" r="3.5" fill="#e8343f"/><circle cx="96" cy="567" r="4.5" fill="#e8343f"/><circle cx="254" cy="523" r="4.5" fill="#e8343f"/><circle cx="587" cy="527" r="3.5" fill="#ffd23f"/><circle cx="650" cy="586" r="3" fill="#ffd23f"/><circle cx="607" cy="562" r="3" fill="#e8343f"/><circle cx="55" cy="583" r="3.5" fill="#ff7eb6"/><circle cx="437" cy="530" r="3" fill="#ffd23f"/><circle cx="323" cy="583" r="3.5" fill="#e8343f"/><circle cx="603" cy="585" r="3.5" fill="#ff7eb6"/><circle cx="107" cy="582" r="3" fill="#ffd23f"/><circle cx="69" cy="591" r="3.5" fill="#ff7eb6"/><circle cx="704" cy="580" r="4.5" fill="#ff7eb6"/><circle cx="484" cy="586" r="4.5" fill="#ff7eb6"/><circle cx="314" cy="543" r="3.5" fill="#ffd23f"/><circle cx="257" cy="522" r="4" fill="#ffd23f"/><circle cx="514" cy="555" r="4.5" fill="#ff7eb6"/><circle cx="631" cy="521" r="3" fill="#ffd23f"/><circle cx="436" cy="533" r="4" fill="#e8343f"/><circle cx="508" cy="565" r="3" fill="#ffd23f"/><circle cx="87" cy="583" r="4" fill="#ff7eb6"/><circle cx="719" cy="556" r="4.5" fill="#ffd23f"/><circle cx="475" cy="520" r="3" fill="#ff7eb6"/><circle cx="493" cy="597" r="3" fill="#e8343f"/><circle cx="756" cy="551" r="4.5" fill="#ff7eb6"/><circle cx="741" cy="561" r="4" fill="#e8343f"/><circle cx="480" cy="557" r="3.5" fill="#ffd23f"/><circle cx="127" cy="575" r="3" fill="#e8343f"/><circle cx="302" cy="528" r="3.5" fill="#ff7eb6"/><circle cx="408" cy="575" r="3" fill="#e8343f"/><circle cx="467" cy="563" r="4" fill="#e8343f"/><circle cx="448" cy="582" r="4" fill="#ffd23f"/><circle cx="433" cy="557" r="4.5" fill="#e8343f"/><circle cx="162" cy="522" r="3.5" fill="#e8343f"/><circle cx="245" cy="596" r="3.5" fill="#e8343f"/><circle cx="504" cy="587" r="3.5" fill="#ff7eb6"/><circle cx="296" cy="512" r="3.5" fill="#ff7eb6"/><circle cx="555" cy="559" r="4" fill="#e8343f"/><circle cx="715" cy="577" r="3" fill="#ff7eb6"/><circle cx="704" cy="583" r="4.5" fill="#ff7eb6"/><circle cx="416" cy="562" r="3" fill="#ff7eb6"/><circle cx="657" cy="563" r="3" fill="#e8343f"/><circle cx="76" cy="538" r="4.5" fill="#e8343f"/><circle cx="120" cy="555" r="3" fill="#e8343f"/><circle cx="8" cy="584" r="3.5" fill="#ffd23f"/><circle cx="111" cy="558" r="3" fill="#e8343f"/><circle cx="220" cy="590" r="4.5" fill="#e8343f"/><circle cx="657" cy="544" r="4" fill="#ffd23f"/><circle cx="380" cy="572" r="3" fill="#e8343f"/><circle cx="507" cy="571" r="4.5" fill="#ff7eb6"/><circle cx="327" cy="522" r="3.5" fill="#e8343f"/><circle cx="775" cy="555" r="4" fill="#ff7eb6"/><circle cx="716" cy="532" r="3" fill="#e8343f"/><circle cx="548" cy="558" r="3.5" fill="#ffd23f"/><circle cx="564" cy="515" r="4" fill="#ffd23f"/><circle cx="101" cy="545" r="4" fill="#e8343f"/><circle cx="372" cy="540" r="4" fill="#ffd23f"/><circle cx="236" cy="590" r="3.5" fill="#e8343f"/><circle cx="418" cy="541" r="3.5" fill="#ffd23f"/><circle cx="512" cy="557" r="3" fill="#e8343f"/><circle cx="294" cy="572" r="4" fill="#e8343f"/><circle cx="717" cy="589" r="4" fill="#ff7eb6"/><circle cx="748" cy="556" r="4" fill="#e8343f"/><circle cx="233" cy="525" r="3.5" fill="#ff7eb6"/><circle cx="209" cy="555" r="3.5" fill="#ff7eb6"/><circle cx="647" cy="590" r="3" fill="#ff7eb6"/><circle cx="676" cy="556" r="3" fill="#ffd23f"/><circle cx="130" cy="561" r="3.5" fill="#ff7eb6"/></g><g class="fl"><g style="fill:var(--fl1)"><circle cx="70" cy="585" r="4"/><circle cx="190" cy="574" r="4"/><circle cx="330" cy="580" r="4"/><circle cx="470" cy="572" r="4"/><circle cx="610" cy="584" r="4"/><circle cx="740" cy="570" r="4"/></g><g style="fill:var(--fl2)"><circle cx="120" cy="590" r="3.5"/><circle cx="260" cy="578" r="3.5"/><circle cx="400" cy="586" r="3.5"/><circle cx="540" cy="580" r="3.5"/><circle cx="680" cy="590" r="3.5"/></g></g>
+<g transform="translate(540 508)"><rect x="0" y="22" width="64" height="38" fill="#8a5a34"/><path class="rf" d="M-8 24L32-8L72 24Z"/><rect x="12" y="32" width="14" height="14" fill="#ffd54a"/><rect x="40" y="36" width="14" height="24" fill="#5a3c25"/><rect x="48" y="-4" width="8" height="16" fill="#7a4b2a"/><circle class="sm" cx="52" cy="-6" r="5" fill="#f4f8ff"/><circle class="sm" style="animation-delay:.8s" cx="52" cy="-6" r="5" fill="#f4f8ff"/><circle class="sm" style="animation-delay:1.6s" cx="52" cy="-6" r="5" fill="#f4f8ff"/><circle class="sm" style="animation-delay:2.4s" cx="52" cy="-6" r="5" fill="#f4f8ff"/></g>
+<g class="wo" transform="translate(250 556)"><circle cy="-10" r="18" fill="#fff" stroke="#dbe9f8" stroke-width="2"/><circle cy="-36" r="13" fill="#fff" stroke="#dbe9f8" stroke-width="2"/><circle cx="-4" cy="-39" r="1.8" fill="#222"/><circle cx="4" cy="-39" r="1.8" fill="#222"/><path d="M0-35L12-33L0-31Z" fill="#ff8a3d"/><rect x="-14" y="-26" width="28" height="5" rx="2" fill="#e84a5f"/></g>
+<use href="#pn" transform="translate(40 572) scale(1.4)"/><use href="#pn" transform="translate(100 588) scale(1)"/><use href="#pn" transform="translate(150 578) scale(.8)"/><use href="#pn" transform="translate(765 574) scale(1.5)"/><use href="#pn" transform="translate(705 588) scale(1)"/><use href="#pn" transform="translate(655 580) scale(.75)"/></svg><svg class="santa" viewBox="0 0 400 150" aria-hidden="true"><defs><g id="rd"><ellipse rx="28" ry="14" fill="#a8693a"/><path d="M20-8Q36-22 40-30" stroke="#a8693a" stroke-width="10" stroke-linecap="round" fill="none"/><circle cx="46" cy="-34" r="11" fill="#a8693a"/><ellipse cx="58" cy="-30" rx="7" ry="5" fill="#c58a52"/><circle cx="63" cy="-31" r="3.2" fill="#e63946"/><circle cx="48" cy="-38" r="1.8" fill="#222"/><path d="M42-44L36-60M36-60L30-58M36-60L38-68M46-44L52-58M52-58L58-56" stroke="#5a3a1e" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M-18 10L-30 30M-8 12L-16 32M14 12L28 28M22 10L40 24" stroke="#7a4a24" stroke-width="5" stroke-linecap="round"/><circle cx="-28" cy="-4" r="4" fill="#fff"/></g></defs>
+<g class="sb"><path d="M126 84Q165 78 204 88M232 88Q252 82 272 80" stroke="#8a5a2a" stroke-width="1.6" fill="none"/><use href="#rd" transform="translate(205 88) scale(.85)"/><use href="#rd" transform="translate(300 80)"/>
+<circle cx="30" cy="62" r="22" fill="#8a5a2a"/><path d="M22 44Q30 38 38 44" stroke="#5a3a1e" fill="none" stroke-width="3"/><circle cx="70" cy="62" r="20" fill="#e53935"/><circle cx="72" cy="36" r="11" fill="#ffd9b0"/><path d="M62 40Q72 64 84 40Z" fill="#fff"/><path d="M60 32Q72 6 90 24L86 32Z" fill="#e53935"/><circle cx="92" cy="26" r="5" fill="#fff"/><rect x="60" y="30" width="26" height="6" rx="3" fill="#fff"/><circle cx="76" cy="36" r="1.6" fill="#222"/>
+<path d="M10 70Q10 100 40 100H112Q128 100 126 74L112 74Q100 90 60 90Q30 90 22 70Z" fill="#c62828"/><path d="M0 118H120Q140 118 134 100" stroke="#e8b923" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M30 100V118M95 100V118" stroke="#e8b923" stroke-width="4"/></g></svg><button class="gear" id="gr" title="Sozlamalar" data-ti="settingsT">⚙️</button><h1 class="ht" data-i="homeTitle">🐾 Animals Master</h1><p class="hs" data-i="homeSub">O‘ynash uchun hayvonni tanlang!</p><div class="grid" id="grid"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const LV=[{t:"Oson",n:6,x:0},{t:"O‘rta",n:8,x:4},{t:"Qiyin",n:10,x:3},{t:"Juda qiyin",n:12,x:2},{t:"Usta",n:14,x:2},{t:"Ekspert",n:16,x:1},{t:"Champion",n:18,x:1},{t:"Afsona",n:20,x:0}];
+const AN={
+pingvin:{n:"Pingvin",t:"Pingvinlarni",e:"🐧",c:"#2b3a5c",w:"#ffffff",f:"#ff9a1f",k:1,bg:["#0b2a5b","#2a6fb5","#bfe6ff"],g:"#eef7ff"},
+quyon:{n:"Quyon",t:"Quyonlarni",e:"🐰",c:"#f4efe8",w:"#ffffff",f:"#f5b8c8",ear:"long",nose:"#ff8fab",bg:["#6ec6ff","#b8e8ff","#e8ffd9"],g:"#8fe388"},
+ayiq:{n:"Ayiq",t:"Ayiqlarni",e:"🐻",c:"#9a5f36",w:"#e8c39a",f:"#6b3d1e",ear:"round",mz:1,bg:["#ff9a5a","#ffd08a","#fff0c9"],g:"#e0a458"},
+mushuk:{n:"Mushuk",t:"Mushuklarni",e:"🐱",c:"#f09a3c",w:"#fff1db",ear:"cone",tail:1,nose:"#ff7a9c",bg:["#7b5cff","#c18bff","#ffd3f0"],g:"#ffd6e7"},
+qurbaqa:{n:"Qurbaqa",t:"Qurbaqalarni",e:"🐸",c:"#4cb44a",w:"#e8f7b8",bump:1,wide:1,bg:["#0e5a4a","#2db08a","#c8ffd9"],g:"#6fd16f"},
+panda:{n:"Panda",t:"Pandalarni",e:"🐼",c:"#ffffff",w:"#ffffff",arm:"#2b2b2b",f:"#2b2b2b",ear:"round",earc:"#2b2b2b",patch:1,bg:["#2e8b57","#8fd9a8","#eafff0"],g:"#a8e6a1"},
+it:{n:"It",t:"Itlarni",e:"🐶",c:"#d9a566",w:"#fff3dd",ear:"floppy",earc:"#8a5a2b",tail:1,mz:1,bg:["#4aa8ff","#9fd8ff","#e9fbd0"],g:"#9be37a"},
+yolbars:{n:"Yo‘lbars",t:"Yo‘lbarslarni",e:"🐯",c:"#f28c1a",w:"#fff8ec",ear:"round",stripe:1,tail:1,mz:1,bg:["#ff8a3d","#ffc470","#fff2c2"],g:"#e3cc78"},
+maymun:{n:"Maymun",t:"Maymunlarni",e:"🐵",c:"#9a6034",w:"#f3cf9e",ear:"side",tail:1,mz:1,bg:["#1f8f4e","#7fd37a","#d9ffc9"],g:"#7ccf5a"},
+qush:{n:"Qush",t:"Qushlarni",e:"🐦",c:"#3fa0f0",w:"#ffffff",f:"#ff9a1f",k:1,ear:"crest",bg:["#2e86de","#78c6ff","#f0fbff"],g:"#d6f0ff"},
+zebra:{n:"Zebra",t:"Zebralarni",e:"🦓",c:"#ffffff",w:"#ffffff",f:"#2b2b2b",ear:"horse",stripe:2,sc:"#1d1d1d",hs:1,mz:1,mzc:"#6b6b6b",tail:1,bg:["#3b6fd8","#8fc0ff","#fff6c9"],g:"#d9e8a0"},
+tovus:{n:"Tovus",t:"Tovuslarni",e:"🦚",c:"#1b7ec2",w:"#3cc4d6",f:"#c9a46a",k:1,ear:"crest",arm:"#16895a",fan:1,bg:["#0f6b6b","#4fc9b0","#e0fff2"],g:"#b9ecc0"},
+qoy:{n:"Qo‘y",t:"Qo‘ylarni",e:"🐑",c:"#f7f4ec",w:"#f7f4ec",hc:"#5a4a44",f:"#3d3330",arm:"#3d3330",ear:"floppy",earc:"#5a4a44",wool:1,bg:["#5aa9ff","#a9dcff","#e8ffd0"],g:"#8fdc7a"},
+sher:{n:"Sher",t:"Sherlarni",e:"🦁",c:"#e0a64a",w:"#f6d9a0",f:"#b9782a",mane:"#8a4b17",mz:1,tail:1,nose:"#7a3b2a",bg:["#ff7a3d","#ffb35a","#fff0b8"],g:"#ecc97a"},
+ilon:{n:"Ilon",t:"Ilonlarni",e:"🐍",c:"#4fb04a",w:"#eef5a8",f:"#4fb04a",nl:1,slim:1,snake:1,coil:1,stripe:2,sc:"#2d7a3a",bg:["#1f7a4d","#7fd37a","#f3ffd0"],g:"#cfe39a"},
+eshak:{n:"Eshak",t:"Eshaklarni",e:"🫏",c:"#8f8f98",w:"#e9e2d8",f:"#4a4a52",ear:"donkey",mz:1,nose:"#3a3a40",bg:["#c8782c","#f0c27a","#fff3d6"],g:"#e6d09a"},
+qoplon:{n:"Qoplon",t:"Qoplonlarni",e:"🐆",c:"#e8b04a",w:"#fff0cf",f:"#c98a2e",ear:"round",mz:1,spots:1,sc:"#4a2a0e",bg:["#3b2a6b","#8a5bd8","#ffd9a6"],g:"#e9d8a8"},
+echki:{n:"Echki",t:"Echkilarni",e:"🐐",c:"#f4f1ea",w:"#fffaf0",f:"#6a5a4a",ear:"goat",mz:1,beard:"#e2d8c4",nose:"#c98a8a",bg:["#3a8a6a","#9fe0b8","#f4ffe0"],g:"#cfe8b0"},
+ordak:{n:"O‘rdak",t:"O‘rdaklarni",e:"🦆",c:"#ffffff",w:"#f6f8fc",f:"#ff9a1f",ear:"crest",wide:1,neck:.15,bill:1,beady:1,wings:1,webbed:1,bg:["#1a6fb0","#6fd0ff","#e8fbff"],g:"#bfe6f5"},
+qoraqoplon:{n:"Qora qoplon",t:"Qora qoplonlarni",e:"🐈‍⬛",c:"#23232b",w:"#2f2f3a",f:"#15151b",ear:"round",mz:1,mzc:"#3a3a46",spots:1,sc:"#3a3a47",geyes:1,nose:"#d27a86",bg:["#2b3a6b","#7fa8e8","#eaf3ff"],g:"#dfe9f5"},
+tulki:{n:"Tulki",t:"Tulkilarni",e:"🦊",c:"#e8782a",w:"#fff4e6",f:"#2b2b2b",ear:"pt",earc:"#2b2b2b",mz:1,bg:["#c8501a","#ffb27a","#fff0e0"],g:"#f4e3cc"},
+bori:{n:"Bo‘ri",t:"Bo‘rilarni",e:"🐺",c:"#8a8f98",w:"#e6e9ee",f:"#4a4d55",ear:"pt",earc:"#3a3d44",mz:1,bg:["#3b4a6b","#8fa6c8","#e8f0fa"],g:"#e4ecf6"},
+bugu:{n:"Bug‘u",t:"Bug‘ularni",e:"🦌",c:"#b9763a",w:"#f4e3cc",f:"#4a3220",ear:"deer",antlers:1,spots:1,sc:"#fff6e6",mz:1,nose:"#3a2418",bg:["#2f7a4a","#8fd09a","#f0ffd9"],g:"#d6e8b0"},
+koala:{n:"Koala",t:"Koalalarni",e:"🐨",c:"#9aa0a8",w:"#e8ebee",f:"#6b7078",ear:"koala",bn:1,nose:"#1a1a20",bg:["#2f8a6a","#8fe0b8","#f0fff4"],g:"#cfe8c8"},
+gorilla:{n:"Gorilla",t:"Gorillalarni",e:"🦍",c:"#3d3d46",w:"#55555f",f:"#2b2b32",ear:"side",gor:1,ga:.06,mz:1,mzc:"#55555f",bg:["#1f6a3a","#6fc27a","#e6ffdc"],g:"#c8e0a8"},
+kenguru:{n:"Kenguru",t:"Kengurularni",e:"🦘",c:"#c98f5a",w:"#f1d9b8",f:"#9a6334",ear:"roo",earc:"#e8a8a0",snout:"#e0b98a",pouch:"#b57a45",bf:1,bg:["#d9602a","#ffb470","#fff0cf"],g:"#f0d9a8"},
+flamingo:{n:"Flamingo",t:"Flamingolarni",e:"🦩",c:"#ff7fa8",w:"#ffb3cc",f:"#ff5c8a",k:1,kc:"#ff9ab8",wings:1,wc:"#ff6f9c",wc2:"#ff9bbd",neck:.8,beady:1,bg:["#c2185b","#ff8fab","#ffe3ec"],g:"#ffd6e7"},
+boyogli:{n:"Boyo‘g‘li",t:"Boyo‘g‘lilarni",e:"🦉",c:"#8a5a34",w:"#ecd9b0",f:"#e0a020",k:1,kc:"#c98a1a",kl:.8,wings:1,wc:"#6e4526",wc2:"#8a5a34",owl:1,ear:"pt",earc:"#6e4526",bg:["#2a2a6b","#6b6bd8","#d9d9ff"],g:"#cfd0f0"},
+totiqush:{n:"To‘tiqush",t:"To‘tiqushlarni",e:"🦜",c:"#e8262a",w:"#ff6a4a",f:"#3a3a3a",k:1,kc:"#f3e9d2",wings:1,wc:"#e8262a",wc2:"#2a7fd0",ear:"crest",bg:["#0f7a3a","#4fd08a","#fff3a8"],g:"#c8f0a8"},
+laylak:{n:"Laylak",t:"Laylaklarni",e:"🐦",c:"#ffffff",w:"#ffffff",f:"#e8402a",k:1,kc:"#e8402a",kl:2.6,wings:1,wc:"#ffffff",wc2:"#2b2b2b",neck:.55,beady:1,bg:["#2e86de","#8fd0ff","#f4fbff"],g:"#d6f0ff"},
+kaptar:{n:"Kaptar",t:"Kaptarlarni",e:"🕊️",c:"#8f98aa",w:"#b9c1d2",f:"#e07a8a",k:1,kc:"#4a4a52",kl:.8,wings:1,wc:"#7a8498",wc2:"#5a6378",neck:.1,beady:1,bg:["#5a6b8a","#a9bbd8","#f0f5ff"],g:"#e4ecf6"},
+lochin:{n:"Oqqush",t:"Oqqushlarni",e:"🦢",c:"#ffffff",w:"#f6f8fc",f:"#2b2b2b",k:1,kc:"#ff8a1f",wings:1,wc:"#ffffff",wc2:"#eef2fa",neck:.7,beady:1,webbed:1,bg:["#1a6fb0","#8fd0ff","#f0fbff"],g:"#cfeaf7"},
+tuyaqush:{n:"Tuyaqush",t:"Tuyaqushlarni",e:"🐦",c:"#2b2b33",w:"#3a3a44",hc:"#f0b8a8",nc:"#f0b8a8",f:"#e8a898",k:1,kc:"#e8a090",kl:.9,wings:1,wc:"#2b2b33",wc2:"#ffffff",neck:.95,beady:1,bg:["#d9602a","#ffc070","#fff3d0"],g:"#f0dfb0"},
+tuya:{n:"Tuya",t:"Tuyalarni",e:"🐫",c:"#c99252",w:"#e8c88f",f:"#a8743a",ear:"round",mz:1,neck:.45,hump:1,bg:["#d98a2a","#ffd27a","#fff3d0"],g:"#f0dca8"},
+timsoh:{n:"Timsoh",t:"Timsohlarni",e:"🐊",c:"#4a9a3a",w:"#d9e8a0",f:"#2f7a2a",bump:1,wide:1,lsn:1,spots:1,sc:"#2d6a2a",bg:["#0e5a4a","#4fc9a0","#e0fff0"],g:"#b9e0b0"},
+begemot:{n:"Begemot",t:"Begemotlarni",e:"🦛",c:"#8a7aa8",w:"#b5a6cc",f:"#6a5a8a",ear:"round",earc:"#6a5a8a",mz:1,mzc:"#a898c2",mzs:1.8,nostr:1,wide:1,bg:["#2a5a8a","#7ac0e8","#e0f6ff"],g:"#cfe8f0"},
+fil:{n:"Fil",t:"Fillarni",e:"🐘",c:"#939cb0",w:"#b0b8c8",f:"#6f778a",ear:"flap",earc:"#d8a8b8",trunk:1,tusk:1,nose:"#939cb0",bg:["#8a6a2a","#e8c27a","#fff3d6"],g:"#e6d09a"},
+karkidon:{n:"Karkidon",t:"Karkidonlarni",e:"🦏",c:"#8c919c",w:"#b3b8c2",f:"#5f636d",ear:"round",earc:"#6f747e",mz:1,mzc:"#a0a5af",horn:1,bg:["#6a4a8a","#c0a0e8","#fff0d9"],g:"#e0d8c0"},
+jirafa:{n:"Jirafa",t:"Jirafalarni",e:"🦒",c:"#f0bf4a",w:"#fff0c8",f:"#8a5a2a",ear:"flat",ossi:1,mz:1,mzc:"#f7dfa0",spots:1,nsp:1,sc:"#9a5a1e",neck:.9,bg:["#e0902a","#ffd27a","#fff6d0"],g:"#f0e0a8"},
+yoqut:{n:"Yoqut",t:"Yoqutlarni",e:"🐂",c:"#6b3f1e",w:"#5a3216",hc:"#4a2a12",f:"#3a2010",ear:"bhorn",wool:1,beard:"#3a2010",mz:1,mzc:"#3a2010",bg:["#6a3a1a","#d9a066","#fff0d0"],g:"#e8d6b0"},
+lama:{n:"Lama",t:"Lamalarni",e:"🦙",c:"#c9a46a",w:"#e8d2a8",f:"#8a6a4a",ear:"llama",llama:1,wool:1,neck:.55,bg:["#2a7a8a","#8fd9e8","#f0fffa"],g:"#d6ecd0"},
+alpaka:{n:"Alpaka",t:"Alpakalarni",e:"🦙",c:"#fbf4e6",w:"#fffaf0",f:"#c9a98a",ear:"pt",earc:"#f0e0c8",llama:1,wool:1,neck:.3,bg:["#c06aa8","#f0b0e0","#fff0fa"],g:"#f4e0f0"},
+tipratikan:{n:"Tipratikan",t:"Tipratikanlarni",e:"🦔",c:"#8a6a4a",w:"#f0d9b8",f:"#5a3c25",ear:"hog",earc:"#f0d9b8",spikes:1,nose:"#1a1a20",bg:["#4a6a2a","#a8d070","#f4ffd9"],g:"#d8e8b0"},
+toshbaqa:{n:"Toshbaqa",t:"Toshbaqalarni",e:"🐢",c:"#5a9a3a",w:"#e8d9a0",f:"#4a8a2e",hc:"#8ab84a",nc:"#8ab84a",neck:.2,wide:1,shell:1,beady:1,bg:["#1a7a8a","#6fd0c0","#e8fff0"],g:"#c8ecd0"}};
+const $=id=>document.getElementById(id);
+const ORD=["pingvin","quyon","ayiq","mushuk","qurbaqa","panda","it","yolbars","zebra","tovus","qoy","sher","ilon","eshak","qoplon","echki","ordak","flamingo","boyogli","totiqush","laylak","kaptar","lochin","tuyaqush","tulki","bori","bugu","gorilla","tuya","timsoh","begemot","kenguru","fil","karkidon","jirafa","koala","yoqut","lama","alpaka","tipratikan"];
+Object.keys(AN).forEach(k=>{if(!ORD.includes(k))ORD.push(k)});
+let season="qish",PV=.012,SNM,ROOF,PONDM;const WIN=[],CONI=[],ROUND=[],TREEP=[],FLW=[],FTP=[];let scatterG=null;
+const SE={
+qish:{n:"Qish",e:"❄️",body:"linear-gradient(#0b1f4d 0%,#1d4f9c 28%,#5d9fdc 55%,#cfe8fb 78%,#f4fbff 100%)",gr:"#eaf3fd",mt:"#dcebfb",fog:"#bcd9f2",lf:"#2c7552",cp:"#ffffff",mnd:"#f6fbff",roof:"#f6fbff",pond:"#b9e3ff",pc:"#ffffff",ps:.13,pv:.012,pn:650,fk:{n:45,z:[3,9],c:["#fff"],r:"50%",d:[6,14]}},
+bahor:{n:"Bahor",e:"🌸",body:"linear-gradient(#3b8fe0 0%,#7cc4f5 40%,#d4f0ff 72%,#f2fff0 100%)",gr:"#69c94c",mt:"#a9cfe0",fog:"#d4eefc",lf:"#4fb35a",cp:"#ffb7d6",mnd:"#98d878",roof:"#c8553d",pond:"#5db8ee",pc:"#ffc2dc",ps:.2,pv:.01,pn:220,fk:{n:26,z:[7,12],c:["#ffc2dc","#ff9ec7","#fff"],r:"50% 0 50% 0",d:[9,17]}},
+yoz:{n:"Yoz",e:"☀️",body:"linear-gradient(#1f7fe0 0%,#58b6ff 45%,#bfe6ff 75%,#fff4c2 100%)",gr:"#86d44f",mt:"#8fb3d6",fog:"#c4e4fa",lf:"#2e9a3a",cp:"#4bc457",mnd:"#78c844",roof:"#b84a32",pond:"#3fa8f0",pc:"#fff3a0",ps:.09,pv:.004,pn:90,fk:{n:18,z:[3,6],c:["#fff3a0"],r:"50%",d:[14,22],g:1}},
+kuz:{n:"Kuz",e:"🍂",body:"linear-gradient(#c8561e 0%,#f09050 40%,#ffd9a0 75%,#fff1d6 100%)",gr:"#d9ad5e",mt:"#c9a27e",fog:"#f6d9b4",lf:"#d2561e",cp:"#f2b42e",mnd:"#c99a48",roof:"#8a3b2a",pond:"#7fb8d8",pc:"#e8641e",ps:.22,pv:.014,pn:260,fk:{n:30,z:[8,13],c:["#e2672a","#f2b42e","#c0392b"],r:"0 70% 0 70%",d:[7,15]}}};
+/* ---------- tillar: uz, ru, en, de, ko ---------- */
+const I18N={"uz": {"settings": "⚙️ Sozlamalar", "settingsT": "Sozlamalar", "pickLang": "Til tanlang", "pickSeason": "Fasl tanlang", "done": "Tayyor", "homeTitle": "🐾 Animals Master", "homeSub": "O‘ynash uchun hayvonni tanlang!", "moves": "Yurishlar:", "time": "Vaqt:", "home": "🏠 Bosh sahifa", "restart": "Qayta boshlash", "zoomOut": "Uzoqlashtirish", "zoomIn": "Yaqinlashtirish", "again": "Yana o‘ynash", "mu": "yurish", "lv0": "Oson", "lv1": "O‘rta", "lv2": "Qiyin", "lv3": "Juda qiyin", "lv4": "Usta", "lv5": "Ekspert", "lv6": "Champion", "lv7": "Afsona", "s_qish": "Qish", "s_bahor": "Bahor", "s_yoz": "Yoz", "s_kuz": "Kuz", "pick2": "Ikkita hayvonchani tanlang — ular joy almashadi. Eng kichkinadan eng balandgacha tartiblang!", "pickSecond": "Endi almashtiriladigan ikkinchi hayvonchani tanlang.", "cancel": "Tanlov bekor qilindi. Hayvonchani qayta tanlang.", "swapping": "Almashtirilmoqda…", "nice": "Zo‘r! {n} ta hayvoncha o‘z o‘rnida.", "keep": "Davom eting!", "left": " Qolgan yurishlar: {n}", "lostMsg": "😢 Yurishlar tugadi!", "lostH": "😢 Yurishlar tugadi", "lostP": "Limitdan oshib ketdingiz. Qaytadan urinib ko‘ring!", "wonMsg": "🎉 Tabriklaymiz! Hammasi tartibda!", "wonH": "🎉 G‘alaba! 🎉", "wonP": "Barcha hayvonchalar to‘g‘ri tartibda!", "record": "🏆 Yangi rekord!", "ctx": "3D to‘xtab qoldi — sahifani yangilang (F5)"}, "ru": {"settings": "⚙️ Настройки", "settingsT": "Настройки", "pickLang": "Выберите язык", "pickSeason": "Выберите сезон", "done": "Готово", "homeTitle": "🐾 Animals Master", "homeSub": "Выберите животное, чтобы играть!", "moves": "Ходы:", "time": "Время:", "home": "🏠 Главная", "restart": "Начать заново", "zoomOut": "Отдалить", "zoomIn": "Приблизить", "again": "Играть ещё", "mu": "ходов", "lv0": "Легко", "lv1": "Средне", "lv2": "Сложно", "lv3": "Очень сложно", "lv4": "Мастер", "lv5": "Эксперт", "lv6": "Чемпион", "lv7": "Легенда", "s_qish": "Зима", "s_bahor": "Весна", "s_yoz": "Лето", "s_kuz": "Осень", "pick2": "Выберите двух зверят — они поменяются местами. Расставьте от самого маленького до самого высокого!", "pickSecond": "Теперь выберите второго зверька для обмена.", "cancel": "Выбор отменён. Выберите зверька снова.", "swapping": "Меняем местами…", "nice": "Отлично! На своём месте: {n}.", "keep": "Продолжайте!", "left": " Осталось ходов: {n}", "lostMsg": "😢 Ходы закончились!", "lostH": "😢 Ходы закончились", "lostP": "Лимит превышен. Попробуйте ещё раз!", "wonMsg": "🎉 Поздравляем! Всё по порядку!", "wonH": "🎉 Победа! 🎉", "wonP": "Все зверята выстроены правильно!", "record": "🏆 Новый рекорд!", "ctx": "3D остановилось — обновите страницу (F5)"}, "en": {"settings": "⚙️ Settings", "settingsT": "Settings", "pickLang": "Choose language", "pickSeason": "Choose season", "done": "Done", "homeTitle": "🐾 Animals Master", "homeSub": "Pick an animal to play!", "moves": "Moves:", "time": "Time:", "home": "🏠 Home", "restart": "Restart", "zoomOut": "Zoom out", "zoomIn": "Zoom in", "again": "Play again", "mu": "moves", "lv0": "Easy", "lv1": "Medium", "lv2": "Hard", "lv3": "Very hard", "lv4": "Master", "lv5": "Expert", "lv6": "Champion", "lv7": "Legend", "s_qish": "Winter", "s_bahor": "Spring", "s_yoz": "Summer", "s_kuz": "Autumn", "pick2": "Pick two animals — they swap places. Sort them from smallest to tallest!", "pickSecond": "Now pick the second animal to swap.", "cancel": "Selection cancelled. Pick an animal again.", "swapping": "Swapping…", "nice": "Great! {n} in the right place.", "keep": "Keep going!", "left": " Moves left: {n}", "lostMsg": "😢 Out of moves!", "lostH": "😢 Out of moves", "lostP": "You went over the limit. Try again!", "wonMsg": "🎉 Congratulations! All in order!", "wonH": "🎉 You win! 🎉", "wonP": "All the animals are in the right order!", "record": "🏆 New record!", "ctx": "3D stopped — reload the page (F5)"}, "de": {"settings": "⚙️ Einstellungen", "settingsT": "Einstellungen", "pickLang": "Sprache wählen", "pickSeason": "Jahreszeit wählen", "done": "Fertig", "homeTitle": "🐾 Animals Master", "homeSub": "Wähle ein Tier zum Spielen!", "moves": "Züge:", "time": "Zeit:", "home": "🏠 Start", "restart": "Neu starten", "zoomOut": "Herauszoomen", "zoomIn": "Heranzoomen", "again": "Nochmal spielen", "mu": "Züge", "lv0": "Leicht", "lv1": "Mittel", "lv2": "Schwer", "lv3": "Sehr schwer", "lv4": "Meister", "lv5": "Experte", "lv6": "Champion", "lv7": "Legende", "s_qish": "Winter", "s_bahor": "Frühling", "s_yoz": "Sommer", "s_kuz": "Herbst", "pick2": "Wähle zwei Tiere – sie tauschen die Plätze. Sortiere vom Kleinsten zum Größten!", "pickSecond": "Wähle jetzt das zweite Tier zum Tauschen.", "cancel": "Auswahl abgebrochen. Wähle ein Tier erneut.", "swapping": "Tausche…", "nice": "Super! {n} am richtigen Platz.", "keep": "Weiter so!", "left": " Verbleibende Züge: {n}", "lostMsg": "😢 Keine Züge mehr!", "lostH": "😢 Keine Züge mehr", "lostP": "Limit überschritten. Versuch es nochmal!", "wonMsg": "🎉 Glückwunsch! Alles in Ordnung!", "wonH": "🎉 Gewonnen! 🎉", "wonP": "Alle Tiere stehen in der richtigen Reihenfolge!", "record": "🏆 Neuer Rekord!", "ctx": "3D ist ausgefallen – Seite neu laden (F5)"}, "ko": {"settings": "⚙️ 설정", "settingsT": "설정", "pickLang": "언어 선택", "pickSeason": "계절 선택", "done": "완료", "homeTitle": "🐾 Animals Master", "homeSub": "플레이할 동물을 골라요!", "moves": "이동:", "time": "시간:", "home": "🏠 홈", "restart": "다시 시작", "zoomOut": "축소", "zoomIn": "확대", "again": "다시 하기", "mu": "회", "lv0": "쉬움", "lv1": "보통", "lv2": "어려움", "lv3": "매우 어려움", "lv4": "달인", "lv5": "전문가", "lv6": "챔피언", "lv7": "전설", "s_qish": "겨울", "s_bahor": "봄", "s_yoz": "여름", "s_kuz": "가을", "pick2": "동물 두 마리를 고르면 자리가 바뀌어요. 가장 작은 것부터 큰 것까지 정렬하세요!", "pickSecond": "이제 바꿀 두 번째 동물을 고르세요.", "cancel": "선택이 취소되었어요. 동물을 다시 고르세요.", "swapping": "바꾸는 중…", "nice": "잘했어요! {n}마리가 제자리에 있어요.", "keep": "계속하세요!", "left": " 남은 이동: {n}", "lostMsg": "😢 이동 횟수를 다 썼어요!", "lostH": "😢 이동 횟수 초과", "lostP": "제한을 넘었어요. 다시 도전해 보세요!", "wonMsg": "🎉 축하해요! 모두 순서대로예요!", "wonH": "🎉 승리! 🎉", "wonP": "모든 동물이 올바른 순서예요!", "record": "🏆 신기록!", "ctx": "3D가 멈췄어요 — 페이지를 새로고침하세요 (F5)"}},ANT={"pingvin": ["Penguin", "Penguins", "Пингвин", "Пингвины", "Pinguin", "Pinguine", "펭귄"], "quyon": ["Rabbit", "Rabbits", "Кролик", "Кролики", "Hase", "Hasen", "토끼"], "ayiq": ["Bear", "Bears", "Медведь", "Медведи", "Bär", "Bären", "곰"], "mushuk": ["Cat", "Cats", "Кошка", "Кошки", "Katze", "Katzen", "고양이"], "qurbaqa": ["Frog", "Frogs", "Лягушка", "Лягушки", "Frosch", "Frösche", "개구리"], "panda": ["Panda", "Pandas", "Панда", "Панды", "Panda", "Pandas", "판다"], "it": ["Dog", "Dogs", "Собака", "Собаки", "Hund", "Hunde", "강아지"], "yolbars": ["Tiger", "Tigers", "Тигр", "Тигры", "Tiger", "Tiger", "호랑이"], "maymun": ["Monkey", "Monkeys", "Обезьяна", "Обезьяны", "Affe", "Affen", "원숭이"], "qush": ["Bird", "Birds", "Птица", "Птицы", "Vogel", "Vögel", "새"], "zebra": ["Zebra", "Zebras", "Зебра", "Зебры", "Zebra", "Zebras", "얼룩말"], "tovus": ["Peacock", "Peacocks", "Павлин", "Павлины", "Pfau", "Pfauen", "공작새"], "qoy": ["Sheep", "Sheep", "Овца", "Овцы", "Schaf", "Schafe", "양"], "sher": ["Lion", "Lions", "Лев", "Львы", "Löwe", "Löwen", "사자"], "ilon": ["Snake", "Snakes", "Змея", "Змеи", "Schlange", "Schlangen", "뱀"], "eshak": ["Donkey", "Donkeys", "Осёл", "Ослы", "Esel", "Esel", "당나귀"], "qoplon": ["Leopard", "Leopards", "Леопард", "Леопарды", "Leopard", "Leoparden", "표범"], "echki": ["Goat", "Goats", "Коза", "Козы", "Ziege", "Ziegen", "염소"], "ordak": ["Duck", "Ducks", "Утка", "Утки", "Ente", "Enten", "오리"], "qoraqoplon": ["Black Panther", "Black Panthers", "Чёрная пантера", "Чёрные пантеры", "Schwarzer Panther", "Schwarze Panther", "흑표범"], "tulki": ["Fox", "Foxes", "Лиса", "Лисы", "Fuchs", "Füchse", "여우"], "bori": ["Wolf", "Wolves", "Волк", "Волки", "Wolf", "Wölfe", "늑대"], "bugu": ["Deer", "Deer", "Олень", "Олени", "Hirsch", "Hirsche", "사슴"], "koala": ["Koala", "Koalas", "Коала", "Коалы", "Koala", "Koalas", "코알라"], "gorilla": ["Gorilla", "Gorillas", "Горилла", "Гориллы", "Gorilla", "Gorillas", "고릴라"], "kenguru": ["Kangaroo", "Kangaroos", "Кенгуру", "Кенгуру", "Känguru", "Kängurus", "캥거루"], "flamingo": ["Flamingo", "Flamingos", "Фламинго", "Фламинго", "Flamingo", "Flamingos", "플라밍고"], "boyogli": ["Owl", "Owls", "Сова", "Совы", "Eule", "Eulen", "부엉이"], "totiqush": ["Parrot", "Parrots", "Попугай", "Попугаи", "Papagei", "Papageien", "앵무새"], "laylak": ["Stork", "Storks", "Аист", "Аисты", "Storch", "Störche", "황새"], "kaptar": ["Dove", "Doves", "Голубь", "Голуби", "Taube", "Tauben", "비둘기"], "lochin": ["Swan", "Swans", "Лебедь", "Лебеди", "Schwan", "Schwäne", "백조"], "tuyaqush": ["Ostrich", "Ostriches", "Страус", "Страусы", "Strauß", "Strauße", "타조"], "tuya": ["Camel", "Camels", "Верблюд", "Верблюды", "Kamel", "Kamele", "낙타"], "timsoh": ["Crocodile", "Crocodiles", "Крокодил", "Крокодилы", "Krokodil", "Krokodile", "악어"], "begemot": ["Hippo", "Hippos", "Бегемот", "Бегемоты", "Nilpferd", "Nilpferde", "하마"], "fil": ["Elephant", "Elephants", "Слон", "Слоны", "Elefant", "Elefanten", "코끼리"], "karkidon": ["Rhino", "Rhinos", "Носорог", "Носороги", "Nashorn", "Nashörner", "코뿔소"], "jirafa": ["Giraffe", "Giraffes", "Жираф", "Жирафы", "Giraffe", "Giraffen", "기린"], "yoqut": ["Yak", "Yaks", "Як", "Яки", "Yak", "Yaks", "야크"], "lama": ["Llama", "Llamas", "Лама", "Ламы", "Lama", "Lamas", "라마"], "alpaka": ["Alpaca", "Alpacas", "Альпака", "Альпаки", "Alpaka", "Alpakas", "알파카"], "tipratikan": ["Hedgehog", "Hedgehogs", "Ёж", "Ежи", "Igel", "Igel", "고슴도치"], "toshbaqa": ["Turtle", "Turtles", "Черепаха", "Черепахи", "Schildkröte", "Schildkröten", "거북이"]};
+I18N.tr={"settings": "⚙️ Ayarlar", "settingsT": "Ayarlar", "pickLang": "Dil seç", "pickSeason": "Mevsim seç", "done": "Tamam", "homeTitle": "🐾 Animals Master", "homeSub": "Oynamak için bir hayvan seç!", "moves": "Hamle:", "time": "Süre:", "home": "🏠 Ana sayfa", "restart": "Yeniden başla", "zoomOut": "Uzaklaştır", "zoomIn": "Yakınlaştır", "again": "Tekrar oyna", "mu": "hamle", "lv0": "Kolay", "lv1": "Orta", "lv2": "Zor", "lv3": "Çok zor", "lv4": "Usta", "lv5": "Uzman", "lv6": "Şampiyon", "lv7": "Efsane", "s_qish": "Kış", "s_bahor": "İlkbahar", "s_yoz": "Yaz", "s_kuz": "Sonbahar", "pick2": "İki hayvan seç — yer değiştirirler. En küçükten en uzuna sırala!", "pickSecond": "Şimdi yer değiştirmek için ikinci hayvanı seç.", "cancel": "Seçim iptal edildi. Tekrar bir hayvan seç.", "swapping": "Yer değiştiriyor…", "nice": "Harika! {n} tanesi doğru yerde.", "keep": "Devam et!", "left": " Kalan hamle: {n}", "lostMsg": "😢 Hamlen bitti!", "lostH": "😢 Hamlen bitti", "lostP": "Sınırı aştın. Tekrar dene!", "wonMsg": "🎉 Tebrikler! Hepsi sıralandı!", "wonH": "🎉 Kazandın! 🎉", "wonP": "Tüm hayvanlar doğru sırada!", "record": "🏆 Yeni rekor!", "ctx": "3D durdu — sayfayı yenile (F5)"};
+const TRN={"pingvin": ["Penguen", "Penguenleri"], "quyon": ["Tavşan", "Tavşanları"], "ayiq": ["Ayı", "Ayıları"], "mushuk": ["Kedi", "Kedileri"], "qurbaqa": ["Kurbağa", "Kurbağaları"], "panda": ["Panda", "Pandaları"], "it": ["Köpek", "Köpekleri"], "yolbars": ["Kaplan", "Kaplanları"], "maymun": ["Maymun", "Maymunları"], "qush": ["Kuş", "Kuşları"], "zebra": ["Zebra", "Zebraları"], "tovus": ["Tavus kuşu", "Tavus kuşlarını"], "qoy": ["Koyun", "Koyunları"], "sher": ["Aslan", "Aslanları"], "ilon": ["Yılan", "Yılanları"], "eshak": ["Eşek", "Eşekleri"], "qoplon": ["Leopar", "Leoparları"], "echki": ["Keçi", "Keçileri"], "ordak": ["Ördek", "Ördekleri"], "qoraqoplon": ["Kara panter", "Kara panterleri"], "tulki": ["Tilki", "Tilkileri"], "bori": ["Kurt", "Kurtları"], "bugu": ["Geyik", "Geyikleri"], "koala": ["Koala", "Koalaları"], "gorilla": ["Goril", "Gorilleri"], "kenguru": ["Kanguru", "Kanguruları"], "flamingo": ["Flamingo", "Flamingoları"], "boyogli": ["Baykuş", "Baykuşları"], "totiqush": ["Papağan", "Papağanları"], "laylak": ["Leylek", "Leylekleri"], "kaptar": ["Güvercin", "Güvercinleri"], "lochin": ["Kuğu", "Kuğuları"], "tuyaqush": ["Devekuşu", "Devekuşlarını"], "tuya": ["Deve", "Develeri"], "timsoh": ["Timsah", "Timsahları"], "begemot": ["Su aygırı", "Su aygırlarını"], "fil": ["Fil", "Filleri"], "karkidon": ["Gergedan", "Gergedanları"], "jirafa": ["Zürafa", "Zürafaları"], "yoqut": ["Yak", "Yakları"], "lama": ["Lama", "Lamaları"], "alpaka": ["Alpaka", "Alpakaları"], "tipratikan": ["Kirpi", "Kirpileri"], "toshbaqa": ["Kaplumbağa", "Kaplumbağaları"]};
+let lang="uz";try{const q=localStorage.getItem("lang");if(q&&I18N[q])lang=q}catch(e){}
+const i18=(k,n)=>{const v=(I18N[lang][k]!==undefined?I18N[lang][k]:I18N.uz[k])||"";return v.replace("{n}",n)};
+const aN=k=>lang==="uz"?AN[k].n:lang==="tr"?TRN[k][0]:ANT[k][{en:0,ru:2,de:4,ko:6}[lang]],aP=k=>lang==="tr"?TRN[k][1]:ANT[k][{en:1,ru:3,de:5}[lang]];
+const titleOf=k=>({uz:()=>AN[k].t+" tartiblash",en:()=>"Sort the "+aP(k),ru:()=>"Сортировка: "+aP(k),de:()=>aP(k)+" sortieren",ko:()=>aN(k)+" 정렬하기",tr:()=>aP(k)+" sırala"})[lang]();
+function setTitle(){const a=AN[cur],nm=titleOf(cur);$("ttl").textContent=a.e+" "+nm;document.title="Animals Master"}
+function applyLang(){document.documentElement.lang=lang;
+document.querySelectorAll("[data-i]").forEach(e=>{e.textContent=i18(e.dataset.i)});
+document.querySelectorAll("[data-ti]").forEach(e=>{e.title=i18(e.dataset.ti)});
+[...$("lv").children].forEach((b,i)=>{b.textContent=i18("lv"+i)+" ("+LV[i].n+")"});
+document.querySelectorAll("#grid .ac").forEach(d=>{d.querySelector("span").textContent=aN(d.dataset.k)});
+document.querySelectorAll("#sbs button").forEach(b=>{b.lastChild.textContent=i18("s_"+b.dataset.k)});
+document.querySelectorAll("#lgs button").forEach(b=>b.classList.toggle("on",b.dataset.l===lang));
+setTitle();updSnd();showBest();if(moves===0&&!won&&!busy)$("msg").textContent=""}
+function setLang(c){lang=c;try{localStorage.setItem("lang",c)}catch(e){}applyLang()}
+let cur="pingvin",lvl=2,N=10,arr=[],gs=[],sel=-1,moves=0,t0=0,timer=null,busy=false,won=false,limit=0,best={},sp=1.3,zm=1,px=0,px0=0,maxPan=0,visW=10;
+const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+
+/* ---------- 3D sahna ---------- */
+const R=new THREE.WebGLRenderer({canvas:$("c"),antialias:true,alpha:true});
+R.shadowMap.enabled=true;
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(38,1,.1,100);
+sc.add(new THREE.HemisphereLight(0xffffff,0x8aa8c8,.9));
+const sun=new THREE.DirectionalLight(0xffffff,.75);sun.position.set(4,10,8);sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-13,right:13,top:9,bottom:-9,near:1,far:35});sc.add(sun);
+const world=new THREE.Group();sc.add(world);
+const gm=new THREE.MeshStandardMaterial({color:"#fff",roughness:1}),mm=new THREE.MeshStandardMaterial({color:"#cfe6ff",roughness:1,flatShading:true});
+const ground=new THREE.Mesh(new THREE.CylinderGeometry(150,150,.5,96),gm);ground.position.y=-.25;ground.receiveShadow=true;world.add(ground);
+const MH=i=>(7+(Math.abs(Math.sin(i*2.7))*.6+Math.abs(Math.cos(i*1.3))*.4)*10)*1.35,MK=(h,x,z)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(5+h*.25,h,6),mm);m.position.set(x,h/2,z);m.castShadow=true;world.add(m)};
+for(let i=0;i<23;i++){const h=MH(i);MK(h,(i-11)*8.9,-27)}
+for(const s of[-1,1])for(let j=1;j<=7;j++){const h=MH(j*3+(s>0?5:0));MK(h,s*(98+j*4),-27+j*12)}
+const pm=new THREE.MeshStandardMaterial({color:"#2c7552",roughness:1,flatShading:true}),cm=new THREE.MeshStandardMaterial({color:"#ffffff",roughness:1,flatShading:true}),tkm=new THREE.MeshStandardMaterial({color:"#6b4a2e",roughness:1});
+/* ---------- bahor: gulli oddiy daraxt ---------- */
+const leafM=new THREE.MeshStandardMaterial({color:"#4fb35a",roughness:1,flatShading:true}),blM=new THREE.MeshStandardMaterial({color:"#ffb3d1",roughness:.9,flatShading:true}),bl2M=new THREE.MeshStandardMaterial({color:"#ffffff",roughness:.9,flatShading:true});
+const mergeG=gs=>{const P=[],N=[];gs.forEach(g=>{const n=g.index?g.toNonIndexed():g;for(const v of n.attributes.position.array)P.push(v);for(const v of n.attributes.normal.array)N.push(v)});const m=new THREE.BufferGeometry();m.setAttribute("position",new THREE.Float32BufferAttribute(P,3));m.setAttribute("normal",new THREE.Float32BufferAttribute(N,3));return m};
+const ico=(r,d,x,y,z)=>{const g=new THREE.IcosahedronGeometry(r,d);g.translate(x,y,z);return g};
+const rtTrunkG=new THREE.CylinderGeometry(.11,.17,1.05,8);rtTrunkG.translate(0,.52,0);
+const rtCrownG=mergeG([ico(.8,1,0,1.6,0),ico(.52,1,.5,1.35,.1),ico(.5,1,-.5,1.4,-.1),ico(.46,1,.05,2.05,.12),ico(.42,1,-.1,1.4,.5)]);
+const rb1=[],rb2=[];
+for(let i=0;i<46;i++){const ph=Math.acos(1-2*(i+.5)/46),th=i*2.39996;if(Math.cos(ph)<-.25)continue;const r=.9,x=r*Math.sin(ph)*Math.cos(th),y=1.65+r*Math.cos(ph),z=r*Math.sin(ph)*Math.sin(th);(i%2?rb2:rb1).push(ico(.11,0,x,y,z))}
+[[.95,1.4,.2],[-.95,1.45,-.1],[.1,1.45,.95],[-.2,2.35,.1],[.6,1.95,.4],[-.65,1.95,-.3]].forEach(([x,y,z],i)=>(i%2?rb2:rb1).push(ico(.11,0,x,y,z)));
+const rtB1G=mergeG(rb1),rtB2G=mergeG(rb2);
+const fr1M=new THREE.MeshStandardMaterial({color:"#d7261e",roughness:.4}),fr2M=new THREE.MeshStandardMaterial({color:"#f2c01c",roughness:.45});
+const frA=[],frB=[];
+for(let i=0;i<40;i++){const ph=Math.acos(1-2*(i+.5)/40),th=i*2.39996+.7;if(Math.cos(ph)<-.1)continue;const r=.86,x=r*Math.sin(ph)*Math.cos(th),y=1.6+r*Math.cos(ph),z=r*Math.sin(ph)*Math.sin(th);(i%4===3?frB:frA).push(ico(.13,2,x,y,z))}
+[[.95,1.3,.25],[-.95,1.35,-.2],[.15,1.3,.95],[-.45,1.25,.7],[.55,1.85,-.45]].forEach(([x,y,z],i)=>(i%3===2?frB:frA).push(ico(.13,2,x,y,z)));
+const rtF1G=mergeG(frA),rtF2G=mergeG(frB);
+const RT_PARTS=[[rtTrunkG,tkm],[rtCrownG,leafM],[rtB1G,blM],[rtB2G,bl2M],[rtF1G,fr1M],[rtF2G,fr2M]];
+const mkRound=()=>{const g=new THREE.Group();RT_PARTS.forEach(([ge,mt],i)=>{const m=new THREE.Mesh(ge,mt);m.castShadow=i<2;g.add(m)});g.visible=false;return g};
+for(let i=0;i<15;i++){const t=new THREE.Group(),x=(i-7)*3+Math.sin(i*5.3)*.9,z=-7.5-Math.abs(Math.sin(i*3.1))*2.5,k=1+Math.abs(Math.cos(i*2.3))*.5;
+const tr=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,.6,8),tkm);tr.position.y=.3;t.add(tr);
+for(let l=0;l<3;l++){const r=(1-l*.27)*.85,c=new THREE.Mesh(new THREE.ConeGeometry(r,1,9),pm),w=new THREE.Mesh(new THREE.ConeGeometry(r*.8,.62,9),cm);c.position.y=.95+l*.62;w.position.y=c.position.y+.2;c.castShadow=w.castShadow=true;t.add(c,w)}
+t.scale.setScalar(k*1.25);t.position.set(x,0,z);world.add(t);CONI.push(t);TREEP.push([x,z,k*1.25]);const rt=mkRound();rt.scale.copy(t.scale);rt.position.copy(t.position);rt.rotation.y=i*1.7;world.add(rt);ROUND.push(rt)}
+{sc.fog=new THREE.Fog("#bcd9f2",34,72);
+const snowM=new THREE.MeshStandardMaterial({color:"#f6fbff",roughness:1}),wd=new THREE.MeshStandardMaterial({color:"#7a4b2a",roughness:.9}),dk=new THREE.MeshStandardMaterial({color:"#4a2e1a",roughness:.9}),gl=new THREE.MeshBasicMaterial({color:"#ffd96a"}),sg=new THREE.SphereGeometry(1,20,14),
+Bx=(geo,mt,x,y,z,rx,ry)=>{const o=new THREE.Mesh(geo,mt);o.position.set(x,y,z);if(rx)o.rotation.x=rx;if(ry)o.rotation.y=ry;o.castShadow=true;return o},
+put=(o,x,y,z,s)=>{o.position.set(x,y,z);o.scale.setScalar(s||1);world.add(o)};
+[[-7,-6.5,2.4],[7,-6.5,2.4],[-2,-9,3.2],[2.5,-8,2.6],[-12,-8,3],[12,-8,3],[0,-11,4]].forEach(([x,z,r])=>{const o=new THREE.Mesh(new THREE.SphereGeometry(1,24,12),snowM);o.scale.set(r*1.6,r*.55,r);o.position.set(x,-.05,z);o.receiveShadow=true;world.add(o)});
+const roofM=new THREE.MeshStandardMaterial({color:"#f6fbff",roughness:1});ROOF=roofM;SNM=snowM;
+const cb=new THREE.Group();
+cb.add(Bx(new THREE.BoxGeometry(2.2,1.4,2.2),wd,0,.7,0));cb.add(Bx(new THREE.ConeGeometry(1.7,1,4),roofM,0,1.9,0,0,Math.PI/4));
+cb.add(Bx(new THREE.BoxGeometry(.32,.8,.32),new THREE.MeshStandardMaterial({color:"#8a3b2e"}),.6,2.2,-.3));cb.add(Bx(new THREE.BoxGeometry(.4,.1,.4),snowM,.6,2.62,-.3));
+cb.add(Bx(new THREE.BoxGeometry(.5,.5,.06),gl,-.55,.85,1.13));cb.add(Bx(new THREE.BoxGeometry(.58,.07,.08),dk,-.55,.85,1.14));cb.add(Bx(new THREE.BoxGeometry(.07,.58,.08),dk,-.55,.85,1.14));cb.add(Bx(new THREE.BoxGeometry(.5,.95,.06),dk,.55,.48,1.13));
+put(cb,-7,1.15,-6.5,1.25);
+const wl=new THREE.PointLight(0xffb347,1.2,7);wl.position.set(-7.6,1.9,-4.6);world.add(wl);
+const ig=new THREE.Group(),im=new THREE.MeshStandardMaterial({color:"#e6f3ff",roughness:.8});
+ig.add(Bx(new THREE.SphereGeometry(1.4,28,16,0,Math.PI*2,0,Math.PI/2),im,0,0,0));ig.add(Bx(new THREE.SphereGeometry(.55,20,12,0,Math.PI*2,0,Math.PI/2),im,0,0,1.15,Math.PI/2));ig.add(Bx(new THREE.CircleGeometry(.36,20),new THREE.MeshBasicMaterial({color:"#12274d"}),0,.28,1.69));
+put(ig,7,.95,-6.5,1.1);WIN.push(ig);
+const sm=new THREE.Group(),sw=new THREE.MeshStandardMaterial({color:"#fff",roughness:.9});
+[[.62,.62],[.44,1.5],[.31,2.1]].forEach(([r,y])=>{const o=Bx(sg,sw,0,y,0);o.scale.setScalar(r);sm.add(o)});
+sm.add(Bx(new THREE.ConeGeometry(.05,.32,8),new THREE.MeshStandardMaterial({color:"#ff8a3d"}),0,2.1,.38,Math.PI/2));
+[-1,1].forEach(s=>{const o=Bx(sg,dk,s*.1,2.18,.28);o.scale.setScalar(.035);sm.add(o)});
+sm.add(Bx(new THREE.TorusGeometry(.33,.075,10,24),new THREE.MeshStandardMaterial({color:"#e84a5f"}),0,1.78,0,Math.PI/2));
+put(sm,5.4,0,-3.8,1.1);WIN.push(sm);
+[[-4.8,-3.4],[4.6,-3.4]].forEach(([x,z])=>{const l=new THREE.Group();l.add(Bx(new THREE.CylinderGeometry(.06,.08,3,8),dk,0,1.5,0));const o=Bx(sg,gl,0,3.1,0);o.scale.setScalar(.22);l.add(o);const h=Bx(sg,new THREE.MeshBasicMaterial({color:"#ffd96a",transparent:true,opacity:.22}),0,3.1,0);h.scale.setScalar(.6);l.add(h);l.add(Bx(new THREE.ConeGeometry(.3,.25,8),dk,0,3.4,0));put(l,x,0,z)});
+const pd=new THREE.Mesh(new THREE.CircleGeometry(2.4,36),new THREE.MeshStandardMaterial({color:"#b9e3ff",roughness:.15,metalness:.2}));pd.rotation.x=-Math.PI/2;pd.position.set(-.5,.02,-5.8);pd.scale.set(1.6,1,1);pd.receiveShadow=true;world.add(pd);PONDM=pd.material;
+const rn=i=>{const q=Math.sin(i*127.1+311.7)*43758.5453;return q-Math.floor(q)},TP=[];
+for(let i=0;i<90;i++){const sd=i%2?1:-1;TP.push([sd*(21+rn(i*5+9)*55),-2+rn(i*5+10)*24,.8+rn(i*5+11)*1])}
+for(let k=TP.length-1;k>=0;k--)if([[-32,8],[33,10]].some(h=>Math.hypot(TP[k][0]-h[0],TP[k][1]-h[1])<10))TP.splice(k,1);
+const tg=[[new THREE.CylinderGeometry(.13,.16,.6,8),.3,tkm]].concat([0,1,2].map(l=>[new THREE.ConeGeometry((1-l*.27)*.85,1,9),.95+l*.62,pm])).concat([0,1,2].map(l=>[new THREE.ConeGeometry((1-l*.27)*.85*.8,.62,9),1.15+l*.62,cm])),
+ims=tg.map(([geo,y,mt])=>{geo.translate(0,y,0);const o=new THREE.InstancedMesh(geo,mt,TP.length);o.frustumCulled=false;world.add(o);return o}),Dm=new THREE.Object3D();
+TP.forEach(([x,z,s],i)=>{Dm.position.set(x,0,z);Dm.rotation.y=rn(i+99)*6.28;Dm.scale.setScalar(s*1.25);Dm.updateMatrix();ims.forEach(o=>o.setMatrixAt(i,Dm.matrix))});
+ims.forEach(o=>CONI.push(o));TP.forEach(([x,z,s])=>{if(Math.abs(x)<32&&z>-45)TREEP.push([x,z,s*1.25])});
+RT_PARTS.forEach(([ge,mt])=>{const o=new THREE.InstancedMesh(ge,mt,TP.length);o.frustumCulled=false;o.visible=false;TP.forEach(([x,z,s],i)=>{Dm.position.set(x,0,z);Dm.rotation.y=rn(i+99)*6.28;Dm.scale.setScalar(s*1.25);Dm.updateMatrix();o.setMatrixAt(i,Dm.matrix)});world.add(o);ROUND.push(o)});
+{const FN=4000,GN=18000,TN=60,fh=new THREE.IcosahedronGeometry(.075,0),fs=new THREE.CylinderGeometry(.012,.012,.2,5);fh.scale(1,.55,1);fh.translate(0,.2,0);fs.translate(0,.1,0);
+const bl=[[0,0,0,0],[.05,.02,.3,.1],[-.05,.03,-.3,-.1],[.01,-.05,.1,-.35]].map(([ox,oz,tz,tx])=>{const g=new THREE.ConeGeometry(.035,.34,4);g.translate(0,.17,0);g.rotateZ(tz);g.rotateX(tx);g.translate(ox,0,oz);return g}),
+hm=new THREE.InstancedMesh(fh,new THREE.MeshStandardMaterial({roughness:.8,flatShading:true}),FN),sm=new THREE.InstancedMesh(fs,new THREE.MeshStandardMaterial({color:"#3f9a3a",roughness:1}),FN),
+gi=new THREE.InstancedMesh(mergeG(bl),new THREE.MeshStandardMaterial({roughness:1,flatShading:true}),GN),
+D2=new THREE.Object3D(),C2=new THREE.Color(),FC=["#e8343f","#ff7eb6","#ffd23f"],GC=["#4fb83a","#63c846","#3fa534","#7bd34f"],TREEP0=TREEP.length;
+hm.setColorAt(0,C2.set("#fff"));gi.setColorAt(0,C2.set("#fff"));
+[hm,sm,gi].forEach(o=>{o.frustumCulled=false;o.visible=false;o.count=0;world.add(o);FLW.push(o)});
+for(let i=0;i<TN;i++){const m=mkRound();m.userData.on=false;FTP.push(m);world.add(m)}
+let lk="";
+const inPond=(x,z)=>((x+.5)/4.2)**2+((z+5.8)/2.7)**2<1,
+H=(i,j,k)=>rn(i*7919+j*104729+k*31.7);
+scatterG=(D,asp)=>{const key=D.toFixed(1)+"|"+asp.toFixed(2)+"|"+maxPan.toFixed(1)+"|"+N;if(key===lk)return;lk=key;
+const th=Math.tan(cam.fov*Math.PI/360)*asp,zmin=-7.5,zmax=Math.max(6,D-3),hfz=z=>Math.max(3,(D-z)*th*1.5+maxPan+6);
+/* maysa va gullar: har bir katak o'z o'rniga qat'iy bog'langan, shuning uchun zoom/ekran o'zgarganda joyidan qimirlamaydi */
+const cell=(cs,cap,seed,prob,mesh,mesh2,col,palette,sy,sh,hy,d0=0,d1=1e9,sc=1,n0=0)=>{let n=n0;const j1=Math.floor(zmax/cs),j0=Math.floor(zmin/cs);
+for(let j=j1;j>=j0&&n<cap;j--){const zc=(j+.5)*cs,hf=hfz(zc),i1=Math.ceil(hf/cs);const dd=Math.max(1,D-zc),pk=Math.min(1,Math.pow(38/dd,.6));for(let i=-i1;i<=i1&&n<cap;i++){if(H(i,j,seed)>prob*pk)continue;
+const x=(i+H(i,j,seed+1))*cs,z=(j+H(i,j,seed+2))*cs;if(inPond(x,z))continue;const dk=Math.hypot(x-cam.position.x,z-D);if(dk<d0||dk>=d1)continue;
+const q=(sy+H(i,j,seed+3)*sh)*sc;D2.position.set(x,0,z);D2.rotation.y=H(i,j,seed+4)*6.28;D2.scale.set(q,q*(hy?1:.8+H(i,j,seed+5)*.7),q);D2.updateMatrix();
+mesh.setMatrixAt(n,D2.matrix);if(mesh2)mesh2.setMatrixAt(n,D2.matrix);mesh.setColorAt(n,C2.set(palette[Math.floor(H(i,j,seed+6)*palette.length)]));n++}}
+mesh.count=n;if(mesh2)mesh2.count=n;mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;if(mesh2)mesh2.instanceMatrix.needsUpdate=true;return n};
+/* kameraga yaqin joyda maysa/gul zichroq (mayda katak), uzoqda siyrakroq (yirik katak) */
+let gn=cell(.2,GN,100,1,gi,null,0,GC,.7,.9,false,0,15,.65,0);gn=cell(.4,GN,100,1,gi,null,0,GC,.7,.9,false,15,34,1,gn);cell(.8,GN,100,1,gi,null,0,GC,.7,.9,false,34,1e9,1.5,gn);
+let fn=cell(.5,FN,300,.7,hm,sm,0,FC,.8,.8,true,0,22,.9,0);cell(1,FN,300,.75,hm,sm,0,FC,.8,.8,true,22,1e9,1.3,fn);
+/* oldingi daraxtlar: joyi qat'iy, faqat hayvonlarni to'smaydigan masofada ko'rinadi */
+const zl=Math.max(3,D*.6),zh=D-8,cs=6,rowHalf=(N-1)/2*sp+1.4;let n=0;FTP.forEach(m=>{m.userData.on=false});TREEP.length=TREEP0;
+if(zh>3)for(let j=Math.floor(zh/cs);j>=0&&n<TN;j--)for(let i=-16;i<=16&&n<TN;i++){if(H(i,j,500)>.45)continue;const x=(i+.2+.6*H(i,j,501))*cs,z=(j+.2+.6*H(i,j,502))*cs;if(z<3||z>zh||(z<zl&&Math.abs(x)<rowHalf)||Math.abs(x)>hfz(z)+3||[[-32,8],[33,10]].some(h=>Math.hypot(x-h[0],z-h[1])<10))continue;
+const m=FTP[n++],q=.9+H(i,j,503)*.35;m.position.set(x,0,z);m.scale.setScalar(q);m.rotation.y=H(i,j,504)*6.28;m.userData.on=true;TREEP.push([x,z,q])}
+const rd=season!=="qish";FTP.forEach(m=>m.visible=rd&&m.userData.on)}}
+const brick=new THREE.MeshStandardMaterial({color:"#8a3b2e"}),hb=new THREE.BoxGeometry(2.2,1.4,2.2),hr=new THREE.ConeGeometry(1.7,1,4),hw2=new THREE.BoxGeometry(.5,.5,.06),hd=new THREE.BoxGeometry(.5,.95,.06),hc2=new THREE.BoxGeometry(.3,.7,.3),HC=["#8a5a34","#a84a3a","#4a6a8a","#c9a24a","#6a8a5a"];
+[[-32,8],[33,10]].forEach(([x,z],i)=>{const h=new THREE.Group();h.add(Bx(hb,new THREE.MeshStandardMaterial({color:HC[i%5],roughness:.9}),0,.7,0));h.add(Bx(hr,roofM,0,1.9,0,0,Math.PI/4));h.add(Bx(hc2,brick,.6,2.2,-.3));h.add(Bx(hw2,gl,-.55,.85,1.13));h.add(Bx(hd,dk,.55,.48,1.13));h.rotation.y=(rn(i+5)-.5)*1.2;put(h,x,0,z,1.3+rn(i+7)*.9)});
+}
+const ring=new THREE.Mesh(new THREE.RingGeometry(.62,.8,40),new THREE.MeshBasicMaterial({color:"#ffd23f",side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.visible=false;world.add(ring);
+const SN=650,sp3=new Float32Array(SN*3);for(let i=0;i<SN;i++){sp3[i*3]=(Math.random()-.5)*30;sp3[i*3+1]=Math.random()*10;sp3[i*3+2]=(Math.random()-.5)*20}
+const snow=new THREE.Points(new THREE.BufferGeometry().setAttribute("position",new THREE.BufferAttribute(sp3,3)),new THREE.PointsMaterial({color:"#fff",size:.13,transparent:true,opacity:.9}));world.add(snow);
+const respawn=(i,init)=>{const a=sp3;if(season==="qish"||!TREEP.length){if(init||season!=="qish"){a[i*3]=(Math.random()-.5)*30;a[i*3+2]=(Math.random()-.5)*20}a[i*3+1]=init?Math.random()*10:10;return}const t=TREEP[(Math.random()*TREEP.length)|0],q=t[2],cy=(1.1+Math.random()*1.3)*q;a[i*3]=t[0]+(Math.random()-.5)*1.6*q;a[i*3+1]=init?Math.random()*cy:cy;a[i*3+2]=t[1]+(Math.random()-.5)*1.6*q};
+
+/* ---------- hayvon yasash ---------- */
+const sph=new THREE.SphereGeometry(1,24,18),tx={};
+const TL={pingvin:"feather",quyon:"pom",ayiq:"short",mushuk:"long",panda:"short",it:"long",yolbars:"long",maymun:"long",qush:"feather",zebra:"long",qoy:"pom",sher:"long",ilon:"snake",eshak:"long",qoplon:"long",echki:"short",ordak:"back",qoraqoplon:"long",tulki:"bush",bori:"bush",bugu:"short",lama:"pom",kenguru:"roo",toshbaqa:"short",flamingo:"feather",boyogli:"feather",totiqush:"feather",laylak:"feather",kaptar:"feather",lochin:"feather",tuyaqush:"feather",tuya:"short",timsoh:"long",begemot:"short",fil:"short",karkidon:"short",jirafa:"long",yoqut:"short",alpaka:"pom"},
+TC={pingvin:"#1b2640",panda:"#ffffff",qush:"#2a7fd0",qoy:"#f7f4ec",ordak:"#ffffff",echki:"#f4f1ea",bugu:"#fff6e6",flamingo:"#ff6f9c",boyogli:"#6e4526",totiqush:"#2a7fd0",laylak:"#ffffff",kaptar:"#6a7388",lochin:"#ffffff",tuyaqush:"#ffffff"},
+TT={yolbars:"#2b2b2b",sher:"#8a4b17",zebra:"#1d1d1d",eshak:"#3a3a40",qoplon:"#4a2a0e",tulki:"#ffffff",bori:"#3a3d44",totiqush:"#ffd23f",laylak:"#2b2b2b",tuyaqush:"#2b2b33",timsoh:"#2d6a2a",jirafa:"#5a3a1a"};
+function numTex(n){if(tx[n])return tx[n];const c=document.createElement("canvas");c.width=c.height=256;const x=c.getContext("2d"),h=n*53%360;
+x.beginPath();x.arc(128,128,118,0,7);x.fillStyle="#fff";x.shadowColor="rgba(0,0,0,.35)";x.shadowBlur=10;x.fill();x.shadowBlur=0;
+const gr=x.createRadialGradient(100,90,10,128,128,100);gr.addColorStop(0,"hsl("+h+",90%,70%)");gr.addColorStop(1,"hsl("+h+",80%,42%)");
+x.beginPath();x.arc(128,128,96,0,7);x.fillStyle=gr;x.fill();
+x.lineWidth=5;x.strokeStyle="rgba(255,255,255,.55)";x.beginPath();x.arc(128,128,84,0,7);x.stroke();
+x.font="900 "+(n>9?126:156)+"px Trebuchet MS,Arial";x.textAlign="center";x.textBaseline="middle";x.lineJoin="round";x.lineWidth=16;x.strokeStyle="rgba(10,30,70,.85)";x.strokeText(n,128,138);x.fillStyle="#fff";x.fillText(n,128,138);
+x.beginPath();x.ellipse(98,76,46,22,-.5,0,7);x.fillStyle="rgba(255,255,255,.28)";x.fill();
+const t=new THREE.CanvasTexture(c);t.anisotropy=4;return tx[n]=t}
+function make(n){
+const a=AN[cur],H=1.1+n*1.7/N,g=new THREE.Group(),
+m=c=>new THREE.MeshStandardMaterial({color:c,roughness:.6}),
+B=m(a.c),W=m(a.w),F=m(a.f||a.c),K=m("#1b1530"),P=m("#ff8fab"),
+S=(mt,x,y,z,sx,sy,sz,rz=0,rx=0)=>{const o=new THREE.Mesh(sph,mt);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.rotation.set(rx,0,rz);o.castShadow=true;g.add(o);return o},
+rb=y=>(a.slim?.4:.58)*Math.sqrt(Math.max(0,1-Math.pow((y-H/2)/(H/2),2))),
+hy=H+.02+(a.neck||0),hw=a.wide?.62:.5;
+if(a.mane){const m1=m(a.mane),m2=m("#a65a1a"),m3=m("#c9812f");S(m1,0,hy,-.14,.68,.64,.4);
+[[16,.72,.16,.3,-.18,0,m1,m2],[12,.56,.14,.22,-.06,.5,m3,m3]].forEach(([n2,r,w,l,z,off,ma,mb])=>{for(let i=0;i<n2;i++){const t=(i+off)/n2*Math.PI*2;S(i%2?ma:mb,Math.cos(t)*r,hy+Math.sin(t)*r*.95,z,w,l,.2,t-Math.PI/2)}})}S(B,0,H/2,0,a.slim?.4:.58,H/2,a.slim?.38:.5);S(W,0,H/2-.05,.1,a.slim?.28:.46,H/2-.14,a.slim?.34:.42);S(a.hc?m(a.hc):B,0,hy,0,hw,.46,.48);
+[-1,1].forEach(s=>{
+if(!a.nl&&!a.wings){const ga=a.ga||0;S(a.arm?m(a.arm):B,s*(.58+ga*1.5),H*.56,0,.09+ga,.3+ga*2.2,.17+ga,s*.3)}
+if(!a.nl)S(F,s*.22,.07,.2,.2,.08,.28);
+S(P,s*.3,hy-.08,.36,.07,.05,.03);
+if(a.bump){S(B,s*.28,hy+.34,.2,.19,.19,.19);S(m("#fff"),s*.28,hy+.38,.3,.14,.14,.1);S(K,s*.28,hy+.38,.38,.07,.07,.05)}
+else if(a.owl){S(m("#5a3a1e"),s*.21,hy+.1,.36,.2,.2,.08);S(m("#ffd84a"),s*.21,hy+.1,.4,.155,.155,.08);S(K,s*.21,hy+.1,.46,.075,.075,.04);S(m("#fff"),s*.235,hy+.14,.5,.03,.03,.02)}else if(a.beady){S(K,s*.2,hy+.1,.41,.09,.105,.07);S(m("#fff"),s*.23,hy+.15,.47,.032,.032,.02);S(m("#fff"),s*.18,hy+.05,.48,.015,.015,.02)}else if(a.eyes){S(m("#fff"),s*.2,hy+.1,.37,.16,.18,.1);S(m("#7a4524"),s*.2,hy+.1,.44,.115,.135,.06);S(m("#1a0c08"),s*.2,hy+.1,.485,.08,.1,.04);S(m("#fff"),s*.23,hy+.15,.52,.035,.035,.02);S(m("#fff"),s*.17,hy+.04,.52,.016,.016,.02);S(m("#5a3a22"),s*.22,hy+.31,.34,.11,.014,.03,s*.35)}else if(a.geyes){S(m("#c9f03a"),s*.19,hy+.1,.4,.1,.09,.06);S(K,s*.19,hy+.1,.45,.03,.07,.03)}else if(a.snake){S(m("#ffd23f"),s*.2,hy+.12,.39,.1,.11,.06);S(K,s*.2,hy+.12,.44,.025,.09,.03)}else if(a.horse){S(K,s*.33,hy+.12,.3,.06,.085,.05);S(m("#fff"),s*.34,hy+.15,.33,.025,.025,.02)}else{if(a.patch)S(K,s*.19,hy+.08,.37,.11,.14,.07,s*.4);S(K,s*.18,hy+.1,.41,.075,.085,.05);S(m("#fff"),s*.2,hy+.14,.45,.03,.03,.02)}
+const e=a.ear,ec=m(a.earc||a.c);
+if(e=="round")S(ec,s*.33,hy+.38,-.02,.17,.17,.12);
+if(e=="hog"){S(ec,s*.4,hy+.3,.12,.2,.2,.11);S(m("#f2b8b0"),s*.4,hy+.3,.19,.12,.12,.06)}
+if(e=="flap"){S(B,s*.62,hy,-.04,.3,.38,.07,s*.2);S(m(a.earc||"#d8a8b8"),s*.6,hy,0,.2,.28,.04,s*.2)}
+if(e=="flat")S(ec,s*.52,hy+.2,0,.21,.07,.08,s*.3);
+if(e=="bhorn"){S(m("#efe2c0"),s*.5,hy+.3,0,.07,.24,.07,-s*.6);S(ec,s*.52,hy+.05,0,.12,.07,.08,s*.2)}
+if(a.ossi){const om=m("#8a5a2a");S(om,s*.15,hy+.52,-.02,.035,.2,.035,-s*.1);S(om,s*.17,hy+.74,-.02,.075,.075,.075)}
+if(e=="long"){S(B,s*.17,hy+.78,0,.1,.4,.07,-s*.15);S(m("#ffb3c7"),s*.17,hy+.78,.04,.05,.3,.03,-s*.15)}
+if(e=="cone"){const o=new THREE.Mesh(new THREE.ConeGeometry(.17,.35,4),B);o.position.set(s*.28,hy+.5,0);o.rotation.z=-s*.25;o.castShadow=true;g.add(o)}
+if(e=="floppy")S(ec,s*.5,hy-.02,0,.1,.3,.14,s*.2);
+if(e=="side")S(B,s*.52,hy+.02,0,.17,.17,.1);
+if(e=="pt"){const o=new THREE.Mesh(new THREE.ConeGeometry(.17,.5,4),B);o.position.set(s*.28,hy+.52,0);o.rotation.z=-s*.2;o.castShadow=true;g.add(o);const i2=new THREE.Mesh(new THREE.ConeGeometry(.09,.34,4),ec);i2.position.set(s*.28,hy+.48,.06);i2.rotation.z=-s*.2;g.add(i2)}
+if(e=="roo"){const o=new THREE.Mesh(new THREE.ConeGeometry(.12,.72,5),B);o.position.set(s*.26,hy+.72,0);o.rotation.z=-s*.14;o.castShadow=true;g.add(o);const i2=new THREE.Mesh(new THREE.ConeGeometry(.07,.52,5),ec);i2.position.set(s*.26,hy+.68,.05);i2.rotation.z=-s*.14;g.add(i2)}
+if(e=="deer"){S(B,s*.52,hy+.2,-.02,.22,.09,.07,s*.4);S(m("#f0d5b8"),s*.52,hy+.2,.02,.15,.05,.04,s*.4)}
+if(e=="koala"){S(B,s*.42,hy+.32,0,.24,.24,.14);S(m("#e8ebee"),s*.42,hy+.32,.07,.15,.15,.06)}
+if(a.antlers){const am=m("#d9c3a0");S(am,s*.2,hy+.68,-.02,.05,.34,.05,-s*.3);S(am,s*.36,hy+.82,-.02,.04,.2,.04,-s*.9);S(am,s*.28,hy+.98,-.02,.035,.17,.035,-s*.25);S(am,s*.1,hy+.78,-.02,.035,.14,.035,s*.5)}
+if(e=="llama"){S(ec,s*.26,hy+.5,0,.09,.24,.07,-s*.12);S(ec,s*.24,hy+.74,0,.07,.16,.06,s*.28)}
+if(e=="goat"){const o=new THREE.Mesh(new THREE.ConeGeometry(.07,.5,8),m("#d9caa4"));o.position.set(s*.2,hy+.52,-.08);o.rotation.set(-.55,0,-s*.25);o.castShadow=true;g.add(o);S(B,s*.5,hy+.08,0,.2,.07,.1,s*.12)}
+if(e=="donkey"){S(B,s*.3,hy+.72,0,.13,.5,.08,-s*.28);S(m("#e9c9c9"),s*.3,hy+.72,.05,.07,.4,.04,-s*.28);S(m("#3a3a40"),s*.4,hy+1.14,0,.1,.12,.07,-s*.28)}
+if(e=="horse"){S(B,s*.25,hy+.56,-.04,.11,.27,.08,-s*.15);S(K,s*.25,hy+.55,.01,.06,.2,.04,-s*.15)}
+if(a.stripe)(a.stripe>1?[.15,.25,.35,.45,.55,.65,.75,.85]:[.3,.45,.6]).forEach(f=>{const y=H*f;S(m(a.sc||"#3a1f08"),s*rb(y)*.97,y,0,.05,.07,.28)});
+if(a.hs){S(K,s*.12,hy+.3,.3,.04,.12,.05,s*.3);S(K,s*.3,hy+.2,.24,.04,.12,.05,s*.5)}
+});
+if(a.ear=="crest")[-1,0,1].forEach(s=>S(B,s*.1,hy+.5,0,.05,.16,.05,-s*.5));
+if(a.mz){const z=a.mzs||1,mx=.38+(z-1)*.08;S(a.mzc?m(a.mzc):W,0,hy-.14,mx,.22*z,.15*z,.14*z);if(a.nostr)[-1,1].forEach(s=>S(K,s*.1,hy-.08,mx+.14*z-.02,.04,.035,.03))}
+if(a.horse){const Wm=m("#fff");S(m("#9a9a9a"),0,hy-.13,.56,.24,.21,.4);[-1,1].forEach(s=>S(K,s*.09,hy-.1,.93,.04,.05,.03));
+for(let i=0;i<6;i++){const y=hy+.35-i*.22;S(i%2?K:Wm,0,y,-(y>H?.3:.5*Math.sqrt(Math.max(0,1-Math.pow((y-H/2)/(H/2),2)))+.02),.08,.17,.12)}
+S(K,0,H*.3-.18,-.64,.1,.16,.1)}
+if(a.spots){const sd=m(a.sc||"#4a2a0e");for(let i=0;i<16;i++){const y=H*(.1+((i*.37)%1)*.72),k=Math.sqrt(Math.max(0,1-Math.pow((y-H/2)/(H/2),2))),s=i%2?1:-1,t=.85+((i*.53)%.5);S(sd,s*.58*k*Math.sin(t),y,.5*k*Math.cos(t),.07,.07,.05)}[-1,1].forEach(s=>{S(sd,s*.14,hy+.3,.34,.045,.045,.03);S(sd,s*.3,hy+.2,.28,.045,.045,.03);S(sd,s*.38,hy-.02,.22,.04,.04,.03)})}
+if(a.wings){const wf=m(a.wc||"#ffffff"),wg=m(a.wc2||"#eef2fa");[-1,1].forEach(s=>{const L=.28+H*.09;[[.7,.56,.1,1,.35,wf],[.8,.5,.09,.9,.55,wg],[.88,.45,.08,.78,.75,wf]].forEach(([x,yf,sx,lm,an,mt])=>S(mt,s*x,H*yf,-.02,sx,L*lm,.2,s*an))})}
+if(a.neck){const nk=a.neck;S(a.nc?m(a.nc):B,0,H+.1+nk*.28,.04,.27,.34+nk*.3,.26);S(B,0,H-.12,.03,.42,.2,.38);if(a.nsp){const sd=m(a.sc||"#4a2a0e");for(let i=0;i<6;i++)S(sd,i%2?.1:-.1,H+.1+i*nk*.17,.29,.07,.07,.04)}}
+if(a.pouch)S(m(a.pouch),0,H*.24,.47,.26,.09,.06);
+if(a.bf)[-1,1].forEach(s=>S(F,s*.24,.05,.42,.2,.06,.42));
+if(a.webbed)[-1,1].forEach(s=>S(F,s*.24,.05,.46,.27,.045,.23));
+if(a.gor){S(B,0,hy+.38,-.06,.3,.2,.32);S(m("#1d1d22"),0,hy+.2,.38,.38,.05,.1)}
+if(a.spikes){const D=new THREE.Object3D(),cs=["#7b5a3c","#5e4329","#9a7650"].map(c=>new THREE.Color(c)),up=new THREE.Vector3(0,1,0),bk=new THREE.Vector3(0,.25,-1).normalize(),im=new THREE.InstancedMesh(new THREE.ConeGeometry(.065,.24,5),new THREE.MeshStandardMaterial({roughness:.8}),1800);let k=0;
+S(B,0,hy+.12,-.14,.46,.3,.38);
+const add=(x,y,z,nx,ny,nz)=>{if(k>=1800)return;const nv=new THREE.Vector3(nx,ny,nz).normalize().lerp(bk,.3).normalize();D.position.set(x+nv.x*.05,y+nv.y*.05,z+nv.z*.05);D.quaternion.setFromUnitVectors(up,nv);D.updateMatrix();im.setMatrixAt(k,D.matrix);im.setColorAt(k,cs[k%3]);k++};
+for(let r=0,R=Math.round(H*13);r<R;r++){const p=.12+(r+.5)/R*2.6,sp=Math.sin(p),n3=Math.max(4,Math.round(6.28*sp*.55/.1));for(let j=0;j<n3;j++){const t=(j+(r%2)*.5)/n3*6.2832+Math.sin(r*7+j*3)*.12;if(Math.cos(t)>.8)continue;const x=.58*sp*Math.sin(t),y=H/2+H/2*Math.cos(p),z=.5*sp*Math.cos(t);add(x,y,z,x/.336,(y-H/2)/(H*H/4),z/.25)}}
+for(let r=0;r<10;r++){const p=.1+(r+.5)/10*1.4,sp=Math.sin(p),n3=Math.max(3,Math.round(6.28*sp*.5/.1));for(let j=0;j<n3;j++){const t=(j+(r%2)*.5)/n3*6.2832+Math.sin(r*5+j*2)*.12;if(Math.cos(t)>.55&&p>.55)continue;const x=.5*sp*Math.sin(t),y=hy+.46*Math.cos(p),z=.48*sp*Math.cos(t);add(x,y,z,x/.25,(y-hy)/.2116,z/.2304)}}
+im.count=k;im.castShadow=true;g.add(im);
+S(W,0,hy-.1,.58,.17,.14,.3);S(K,0,hy-.07,.86,.08,.07,.07)}
+if(a.spikesOld){const s1=m("#7b5a3c"),s2=m("#5e4329"),cg=new THREE.ConeGeometry(.07,.34,5),up=new THREE.Vector3(0,1,0);S(B,0,hy+.18,-.16,.44,.3,.36);
+for(let i=0,c=30+Math.round(H*18);i<c;i++){const y=H*(.08+((i*.618)%1)*.86),k=Math.sqrt(Math.max(0,1-Math.pow((y-H/2)/(H/2),2))),t=1.2+((i*.382)%1)*(Math.PI*2-2.4),x=.58*k*Math.sin(t),z=.5*k*Math.cos(t),nv=new THREE.Vector3(x/.34,(y-H/2)/(H*H/4),z/.25).normalize(),o=new THREE.Mesh(cg,i%2?s1:s2);o.position.set(x+nv.x*.1,y+nv.y*.1,z+nv.z*.1);o.quaternion.setFromUnitVectors(up,nv);o.castShadow=true;g.add(o)}
+S(W,0,hy-.1,.55,.15,.13,.2);S(K,0,hy-.08,.74,.07,.06,.06)}
+if(a.shell){const sm1=m("#6b8a2a"),sm2=m("#3f5a14");S(sm1,0,H*.52,-.34,.8,H*.54,.58);[-1,1].forEach(s=>[.28,.52,.76].forEach(f=>S(sm2,s*.72,H*f,-.2,.09,.13,.1,s*.2)));S(sm2,0,H*1.02,-.34,.3,.1,.22)}
+if(a.hump)[-1,1].forEach(s=>S(B,s*.3,H,-.15,.27,.27,.26));
+if(a.horn){const hm=m("#efe6d2"),o=new THREE.Mesh(new THREE.ConeGeometry(.13,.5,10),hm);o.position.set(0,hy+.2,.6);o.rotation.x=.45;o.castShadow=true;g.add(o);const o2=new THREE.Mesh(new THREE.ConeGeometry(.08,.28,8),hm);o2.position.set(0,hy+.34,.38);o2.rotation.x=.3;g.add(o2)}
+if(a.lsn){S(B,0,hy-.14,.72,.3,.14,.5);S(W,0,hy-.25,.7,.27,.06,.46);[-1,1].forEach(s=>{S(K,s*.1,hy-.06,1.18,.03,.03,.03);for(let i=0;i<4;i++)S(m("#fff"),s*.25,hy-.21,.5+i*.17,.025,.05,.025)})}
+if(a.trunk){[[.15,-.05,.5],[.13,-.18,.57],[.11,-.3,.64],[.09,-.41,.72]].forEach(([r,y,z])=>S(B,0,hy+y,z,r,r*1.1,r));if(a.tusk)[-1,1].forEach(s=>S(m("#fff8e0"),s*.2,hy-.3,.56,.045,.045,.26))}
+if(a.snout){S(m(a.snout),0,hy-.12,.52,.17,.14,.26);S(K,0,hy-.1,.76,.06,.05,.05)}
+if(a.llama){S(m("#ead7b4"),0,hy-.12,.5,.2,.17,.26);S(m("#8a5a52"),0,hy-.1,.74,.06,.05,.05)}
+if(a.beard)S(m(a.beard),0,hy-.42,.28,.08,.2,.07);
+if(a.wool){[.2,.4,.6,.8].forEach(f=>[-1,1].forEach(s=>S(B,s*.42,H*f,0,.26,.26,.3)));S(B,0,hy+.36,-.05,.38,.24,.34)}
+if(a.k){const kl=a.kl||1,o=new THREE.Mesh(new THREE.ConeGeometry(.1,.26*kl,12),m(a.kc||"#ffa21f"));o.rotation.x=Math.PI/2;o.position.set(0,hy-.06,.58+(kl-1)*.13);o.castShadow=true;g.add(o)}
+else if(a.bill){const o=m("#ff9a1a");S(o,0,hy-.08,.58,.3,.07,.27);S(m("#c8404a"),0,hy-.14,.55,.24,.03,.2);S(m("#ff7f8c"),0,hy-.155,.56,.15,.03,.13);S(o,0,hy-.2,.55,.25,.05,.2,0,.3);[-1,1].forEach(s=>S(m("#e8890f"),s*.07,hy-.015,.72,.025,.02,.02))}else S(m(a.nose||"#1b1530"),0,hy-.06,.5,a.bn?.15:.07,a.bn?.2:.05,a.bn?.1:.05);
+if(a.bump)S(m("#1d5a2a"),0,hy-.16,.45,.3,.025,.05);
+if(a.snake){const T=m("#e0245e");S(T,0,hy-.16,.6,.03,.02,.14);S(T,-.035,hy-.16,.76,.02,.02,.06);S(T,.035,hy-.16,.76,.02,.02,.06)}
+if(a.coil)[[.52,.18,.18],[.42,.16,.44]].forEach(([r,tb,y])=>{const o=new THREE.Mesh(new THREE.TorusGeometry(r,tb,12,28),B);o.position.y=y;o.rotation.x=Math.PI/2;o.scale.set(1,.9,1);o.castShadow=true;g.add(o)});
+{const tk=TL[cur];if(tk){const tm=m(TC[cur]||a.c),tp=m(TT[cur]||TC[cur]||a.c),yb=H*.26,xb=rb(yb)*.8,L=.55+H*.12;
+if(tk=="long"){for(let i=0;i<9;i++){const f=i/8,r=.1-f*.025;S(i>6?tp:tm,xb+.1+Math.sin(f*2.1)*.42,yb+f*L*1.15,-.1,r,r,r)}}
+else if(tk=="short"){S(tm,xb+.12,yb,-.1,.18,.18,.18)}
+else if(tk=="pom"){S(tm,xb+.1,yb-.05,-.1,.22,.22,.22)}
+else if(tk=="feather"){[-1,0,1].forEach(j=>S(j?tm:tp,xb+.28,yb-.08+j*.11,-.1,.32,.075,.06,j*.45))}
+else if(tk=="roo"){for(let i=0;i<6;i++){const r=.2-i*.025;S(tm,0,.3-i*.03,-.55-i*.2,r,r,r+.05)}}
+else if(tk=="bush"){for(let i=0;i<6;i++){const f=i/5,r=.17+.07*Math.sin(f*3);S(i>4?tp:tm,xb+.1+Math.sin(f*2)*.4,yb+f*L*.9,-.1-f*.05,r,r,r)}}
+else if(tk=="back"){[-1,0,1].forEach(j=>S(tm,j*.14,yb+.18,-.6,.1,.26,.07,j*.35,-.5))}
+else if(tk=="snake"){for(let i=0;i<7;i++){const r=.17-i*.02;S(tm,.62+i*.1,.16+Math.sin(i*.7)*.08+i*.04,.05,r,r,r)}}}}
+if(a.fan){const L=.45+H*.28,py=H*.28,go=m("#e8b92a"),tl=m("#2fb4c4"),nv=m("#16407a"),st=m("#0e5a4a");
+[[1,13,.85,-.62,"#12806a","#2fbf8a"],[.78,10,.72,-.55,"#17a87a","#46d3a0"]].forEach(([q,cnt,mx,z0,c1,c2],li)=>{const f1=m(c1),f2=m(c2);
+for(let i=0;i<cnt;i++){const t=(i/(cnt-1)*2-1)*mx,s=Math.sin(t),c=Math.cos(t),l=L*q,z=z0-Math.abs(t)*.05+li*.04;
+S(i%2?f1:f2,s*l,py+c*l,z,.19,l,.04,-t);S(st,s*l,py+c*l,z+.02,.025,l,.02,-t);
+const d=l*1.62,x=s*d,y=py+c*d;
+S(go,x,y,z+.03,.15,.2,.03,-t);S(tl,x,y,z+.05,.11,.15,.03,-t);S(nv,x,y,z+.07,.06,.09,.03,-t)}})}
+const y=H-.3,hh=n*53%360,sm=m("hsl("+hh+",85%,58%)"),sl=m("hsl("+hh+",90%,86%)"),sc2=new THREE.Mesh(new THREE.TorusGeometry(rb(y)+.02,.1,12,36),sm);sc2.position.y=y;sc2.rotation.x=Math.PI/2;sc2.scale.set(1,.86,1);sc2.castShadow=true;g.add(sc2);
+const sc3=new THREE.Mesh(new THREE.TorusGeometry(rb(y)+.02,.1,12,36,Math.PI*2),sl);sc3.position.y=y+.07;sc3.rotation.x=Math.PI/2;sc3.scale.set(.97,.83,.5);g.add(sc3);
+const bx=(mt,w,h2,d,x,yy,z,ry,rz)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h2,d),mt);o.position.set(x,yy,z);o.rotation.set(0,ry,rz);o.castShadow=true;g.add(o)},hx=rb(y)*.74;
+S(sm,hx-.02,y-.02,.3,.17,.15,.14);
+bx(sm,.2,.62,.06,hx,y-.38,.36,.85,.06);bx(sl,.205,.07,.065,hx+.01,y-.4,.365,.85,.06);bx(sl,.205,.07,.065,hx+.01,y-.56,.365,.85,.06);
+bx(sm,.19,.46,.06,hx+.14,y-.3,.3,.95,-.1);bx(sl,.195,.07,.065,hx+.15,y-.32,.303,.95,-.1);
+const bd=new THREE.Mesh(new THREE.SphereGeometry(.6,24,16,Math.PI/2-.65,1.3,Math.PI/2-.65,1.3),new THREE.MeshStandardMaterial({map:numTex(n),transparent:true,roughness:.3,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));bd.position.set(0,H*.45,-.05);g.add(bd);
+return g}
+
+/* ---------- o‘yin mantig‘i ---------- */
+function shuffle(){let a;do{a=Array.from({length:N},(_,i)=>i+1);for(let i=N-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}while(a.every((v,i)=>v===i+1));return a}
+function setLimit(){const x=LV[lvl].x;if(!x){limit=0;$("lim").textContent="";return}
+let seen=new Set(),cyc=0;for(let i=0;i<N;i++){if(seen.has(i))continue;cyc++;let j=i;while(!seen.has(j)){seen.add(j);j=arr[j]-1}}
+limit=N-cyc+x;$("lim").textContent=" / "+limit}
+function showBest(){const b=best[cur+lvl];$("bst").textContent=b?b.m+" "+i18("mu")+" / "+fmt(b.s):"—"}
+const zs=i=>i%2?-.9:0;
+function fit(){const asp=innerWidth/innerHeight;R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(innerWidth,innerHeight,false);cam.aspect=asp;
+sp=asp<1?1.35:1.6;const hw=N*sp/2+.7,D=Math.max(11,hw/(Math.tan(cam.fov*Math.PI/360)*asp))*zm;
+cam.far=Math.max(260,D+220);sc.fog.near=Math.max(40,D+18);sc.fog.far=Math.max(150,D+150);const sx=Math.max(13,hw+3);sun.shadow.camera.left=-sx;sun.shadow.camera.right=sx;sun.shadow.camera.updateProjectionMatrix();
+visW=D*Math.tan(cam.fov*Math.PI/360)*asp;maxPan=Math.max(0,hw-visW);px=Math.max(-maxPan,Math.min(maxPan,px));cam.position.set(px,3.8+D*.12,D);cam.lookAt(px,2.4,0);cam.updateProjectionMatrix();gs.forEach((g,i)=>{if(!g.userData.fly){g.position.x=(i-(N-1)/2)*sp;g.position.z=zs(i)}});if(scatterG)scatterG(D,asp)}
+function start(){
+clearInterval(timer);timer=null;won=false;busy=false;sel=-1;moves=0;ring.visible=false;
+N=LV[lvl].n;showBest();$("mv").textContent=0;$("tm").textContent="00:00";$("ov").classList.remove("show");
+$("msg").textContent="";
+gs.forEach(g=>world.remove(g));arr=shuffle();setLimit();
+const now=performance.now();gs=arr.map((n,i)=>{const g=make(n);g.userData={in:now+i*80};g.position.y=9;world.add(g);return g});fit()}
+/* ---------- hayvon raqamini aytishi ---------- */
+const SPW={
+uz:"bir ikki uch toʻrt besh olti yetti sakkiz toʻqqiz oʻn oʻn-bir oʻn-ikki oʻn-uch oʻn-toʻrt oʻn-besh oʻn-olti oʻn-yetti oʻn-sakkiz oʻn-toʻqqiz yigirma",
+uzk:"бир икки уч тўрт беш олти етти саккиз тўққиз ўн ўн-бир ўн-икки ўн-уч ўн-тўрт ўн-беш ўн-олти ўн-етти ўн-саккиз ўн-тўққиз йигирма",
+uzc:"бир икки уч торт беш олти етти саккиз токкиз он он-бир он-икки он-уч он-торт он-беш он-олти он-етти он-саккиз он-токкиз йигирма",
+ru:"один два три четыре пять шесть семь восемь девять десять одиннадцать двенадцать тринадцать четырнадцать пятнадцать шестнадцать семнадцать восемнадцать девятнадцать двадцать",
+en:"one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty",
+de:"eins zwei drei vier fünf sechs sieben acht neun zehn elf zwölf dreizehn vierzehn fünfzehn sechzehn siebzehn achtzehn neunzehn zwanzig",
+ko:"하나 둘 셋 넷 다섯 여섯 일곱 여덟 아홉 열 열하나 열둘 열셋 열넷 열다섯 열여섯 열일곱 열여덟 열아홉 스물",
+tr:"bir iki üç dört beş altı yedi sekiz dokuz on on-bir on-iki on-üç on-dört on-beş on-altı on-yedi on-sekiz on-dokuz yirmi"};
+const numWord=(n,k)=>SPW[k].split(" ")[n-1].replace(/-/g," ");
+let VOX=[];function loadVox(){try{VOX=speechSynthesis.getVoices()||[]}catch(e){}}
+if("speechSynthesis" in window){loadVox();speechSynthesis.onvoiceschanged=loadVox}
+function findVox(p){const l=VOX.filter(v=>v.lang.toLowerCase().replace("_","-").startsWith(p));
+return l.find(v=>/google|natural|enhanced|premium|neural/i.test(v.name))||l.find(v=>v.localService===false)||l[0]}
+const vol=5;
+const HWT={uz:"Qanday o‘ynaladi",ru:"Как играть",en:"How to play",de:"Spielanleitung",ko:"게임 방법",tr:"Nasıl oynanır"};
+const MNT={uz:"☰ Menyu",ru:"☰ Меню",en:"☰ Menu",de:"☰ Menü",ko:"☰ 메뉴",tr:"☰ Menü"};
+function updSnd(){$("mn").textContent=MNT[lang]||MNT.en;$("howT").textContent=HWT[lang]||HWT.en;$("how").textContent=i18("pick2")}
+$("mn").onclick=()=>{$("lv").style.display=$("lv").style.display==="none"?"":"none"};
+function sayNum(n){if(n<1||n>20)return;sayBrowser(n)}
+function sayBrowser(n){
+if(!("speechSynthesis" in window)||n<1||n>20||!vol)return;
+try{
+let k=lang,lg={uz:"uz-UZ",ru:"ru-RU",en:"en-US",de:"de-DE",ko:"ko-KR",tr:"tr-TR"}[lang]||"en-US",v=findVox(lg.slice(0,2));
+if(lang==="uz"&&!v){const r=findVox("ru");if(r){k="uzc";lg="ru-RU";v=r}}
+const u=new SpeechSynthesisUtterance(numWord(n,k));u.lang=lg;
+if(v)u.voice=v;
+u.rate=.85;u.pitch=1.1;u.volume=vol/5;
+speechSynthesis.cancel();speechSynthesis.speak(u);
+}catch(e){}}
+function pick(i){
+if(busy||won)return;
+sayNum(arr[i]);
+if(!timer){t0=Date.now();timer=setInterval(()=>{$("tm").textContent=fmt(Math.floor((Date.now()-t0)/1000))},250)}
+if(sel===-1){sel=i;gs[i].userData.sp=performance.now();$("msg").textContent=i18("pickSecond")}
+else if(sel===i){sel=-1;$("msg").textContent=i18("cancel")}
+else swap(sel,i)}
+function swap(a,b){
+busy=true;ring.visible=false;const A=gs[a],B=gs[b],xa=A.position.x,xb=B.position.x,za=zs(a),zb=zs(b),s=performance.now(),T=800;
+A.userData.fly=B.userData.fly=1;sel=-1;$("msg").textContent=i18("swapping");
+const step=()=>{const k=Math.min(1,(performance.now()-s)/T),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,h=Math.sin(k*Math.PI);
+A.position.set(xa+(xb-xa)*e,h*1.7+.55*(1-k),za+(zb-za)*e+h*1.6);B.position.set(xb+(xa-xb)*e,h*.5,zb+(za-zb)*e-h*1.6);A.rotation.z=-h*.3;B.rotation.z=h*.3;
+if(k<1)return requestAnimationFrame(step);
+A.rotation.z=B.rotation.z=0;A.userData.fly=B.userData.fly=0;
+[arr[a],arr[b]]=[arr[b],arr[a]];[gs[a],gs[b]]=[gs[b],gs[a]];moves++;$("mv").textContent=moves;busy=false;
+if(arr.every((v,i)=>v===i+1))win();
+else if(limit&&moves>=limit)lose();
+else{const c=arr.filter((v,i)=>v===i+1).length;$("msg").textContent=(c?i18("nice",c):i18("keep"))+(limit?i18("left",limit-moves):"")}};
+step()}
+function lose(){won=true;clearInterval(timer);timer=null;$("msg").textContent=i18("lostMsg");
+$("oh").textContent=i18("lostH");$("op").textContent=i18("lostP");$("wm").textContent=moves+" / "+limit;$("wt").textContent=$("tm").textContent;$("wr").textContent="";
+setTimeout(()=>$("ov").classList.add("show"),500)}
+function win(){
+won=true;clearInterval(timer);timer=null;const sec=Math.floor((Date.now()-t0)/1000),now=performance.now();
+$("msg").textContent=i18("wonMsg");
+gs.forEach((g,i)=>g.userData.jt=now+i*110);
+let rec="";const b=best[cur+lvl];
+$("oh").textContent=i18("wonH");$("op").textContent=i18("wonP");
+if(!b||moves<b.m||(moves===b.m&&sec<b.s)){best[cur+lvl]={m:moves,s:sec};rec=i18("record");showBest()}
+$("wm").textContent=moves;$("wt").textContent=fmt(sec);$("wr").textContent=rec;
+setTimeout(()=>{$("ov").classList.add("show");confetti()},1800)}
+function confetti(){const cols=["#ff5d8f","#ffd23f","#4dd0e1","#9be15d","#ff8a3d","#b57bff"];
+for(let i=0;i<70;i++){const c=document.createElement("div");c.className="conf";c.style.left=Math.random()*100+"vw";c.style.background=cols[i%6];c.style.setProperty("--dx",(Math.random()*200-100)+"px");
+c.style.animationDuration=(2+Math.random()*2.5)+"s";c.style.animationDelay=Math.random()*.8+"s";document.body.appendChild(c);setTimeout(()=>c.remove(),5500)}}
+function theme(){const a=AN[cur];
+document.body.style.background=SE[season].body;
+
+setTitle()}
+
+/* ---------- 3D ikonkalar ---------- */
+const PR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});PR.setSize(240,260);
+const ps=new THREE.Scene();ps.add(new THREE.HemisphereLight(0xffffff,0x8aa8c8,1));const pl=new THREE.DirectionalLight(0xffffff,.8);pl.position.set(3,6,8);ps.add(pl);
+const pc=new THREE.PerspectiveCamera(30,240/260,.1,100);
+function thumb(k,ix){const oc=cur,on=N;cur=k;N=1000;const g=make(ix+1);cur=oc;N=on;g.rotation.y=-.45;ps.add(g);
+pc.position.set(0,1.45,6);pc.lookAt(0,1.3,0);PR.render(ps,pc);const u=PR.domElement.toDataURL();ps.remove(g);return u}
+/* ---------- boshqaruv ---------- */
+const ray=new THREE.Raycaster(),mv=new THREE.Vector2();let dn=null,yaw0=0,drag=false,pinch=false,pd0=1,zm0=1;const ptrs=new Map(),ZC=v=>Math.min(1.8,Math.max(.4,v));
+const cv=$("c");
+cv.addEventListener("webglcontextlost",e=>{e.preventDefault();$("msg").textContent=i18("ctx")});
+cv.addEventListener("wheel",e=>{e.preventDefault();zm=ZC(zm*Math.exp(e.deltaY*.0012));fit()},{passive:false});
+cv.addEventListener("pointercancel",e=>{ptrs.delete(e.pointerId);if(!ptrs.size)pinch=false;dn=null});
+cv.addEventListener("pointerdown",e=>{ptrs.set(e.pointerId,[e.clientX,e.clientY]);if(ptrs.size===2){const[a,b]=[...ptrs.values()];pd0=Math.hypot(a[0]-b[0],a[1]-b[1])||1;zm0=zm;pinch=true;dn=null;cv.setPointerCapture(e.pointerId);return}dn=e.clientX;px0=px;yaw0=world.rotation.y;drag=false;cv.setPointerCapture(e.pointerId)});
+cv.addEventListener("pointermove",e=>{if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,[e.clientX,e.clientY]);if(pinch&&ptrs.size===2){const[a,b]=[...ptrs.values()];zm=ZC(zm0*pd0/(Math.hypot(a[0]-b[0],a[1]-b[1])||1));fit();return}if(dn===null)return;const d=e.clientX-dn;if(Math.abs(d)>6)drag=true;if(drag){if(maxPan>.05){px=Math.max(-maxPan,Math.min(maxPan,px0-d*2*visW/innerWidth));cam.position.x=px;cam.lookAt(px,2.4,0)}else world.rotation.y=Math.max(-.7,Math.min(.7,yaw0+d*.004))}});
+cv.addEventListener("pointerup",e=>{ptrs.delete(e.pointerId);if(pinch){if(!ptrs.size)pinch=false;return}if(dn===null)return;dn=null;if(drag)return;
+mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mv,cam);
+const h=ray.intersectObjects(gs,true)[0];if(!h)return;let o=h.object;while(o&&gs.indexOf(o)<0)o=o.parent;if(o)pick(gs.indexOf(o))});
+$("rs").onclick=start;$("zo").onclick=()=>{zm=ZC(zm*1.15);fit()};$("zi").onclick=()=>{zm=ZC(zm/1.15);fit()};$("again").onclick=start;
+$("hm").onclick=()=>{$("lv").style.display="";clearInterval(timer);timer=null;$("ov").classList.remove("show");$("home").classList.remove("hide")};
+LV.forEach((l,i)=>{const b=document.createElement("button");b.textContent=i18("lv"+i)+" ("+l.n+")";if(i===lvl)b.className="on";
+b.onclick=()=>{lvl=i;[...$("lv").children].forEach((e,k)=>e.className=k===i?"on":"");$("lv").style.display="none";start()};$("lv").appendChild(b)});
+const TQ=[];
+ORD.forEach((k,ix)=>{const a=AN[k],d=document.createElement("div");d.className="ac";d.style.background=`linear-gradient(${a.bg[1]},${a.bg[2]})`;d.style.setProperty("--r",((ix%3)-1)*1.6+"deg");d.dataset.k=k;d.innerHTML=`<img alt=""><span>${aN(k)}</span>`;TQ.push([k,ix,d.firstChild]);
+d.onclick=()=>{cur=k;theme();$("home").classList.add("hide");start()};$("grid").appendChild(d)});
+(function nx(){const q=TQ.shift();if(!q)return;q[2].src=thumb(q[0],q[1]);setTimeout(nx,20)})();
+addEventListener("resize",fit);
+const HT=[[330,505,.5],[365,510,.38],[470,500,.45],[40,572,1.4],[100,588,1],[150,578,.8],[765,574,1.5],[705,588,1],[655,580,.75]];
+function treeFlake(f){const w=innerWidth,h=innerHeight,q=Math.max(w/800,h/600),ox=(w-800*q)/2,oy=h-600*q,t=HT[(Math.random()*HT.length)|0],x=ox+(t[0]+(Math.random()-.5)*60*t[2])*q,y=oy+(t[1]-(25+Math.random()*45)*t[2])*q,dy=Math.max(40,h-y);f.style.left=x+"px";f.style.top=y+"px";f.style.animationName="fl3";f.style.setProperty("--dy",dy+"px");f.style.animationDuration=(3+Math.random()*3+dy/h*6)+"s"}
+function mkFlakes(){document.querySelectorAll(".flake").forEach(e=>e.remove());const k=SE[season].fk;
+for(let i=0;i<k.n;i++){const f=document.createElement("div"),z=k.z[0]+Math.random()*(k.z[1]-k.z[0]);f.className="flake";
+f.style.cssText=`left:${Math.random()*100}vw;width:${z}px;height:${z}px;background:${k.c[i%k.c.length]};border-radius:${k.r};animation-duration:${k.d[0]+Math.random()*(k.d[1]-k.d[0])}s;animation-delay:-${Math.random()*10}s${k.g?";box-shadow:0 0 8px #ffe36a":""}`;
+f.style.setProperty("--dx",(Math.random()*80-40)+"px");if(season!=="qish")treeFlake(f);$("home").appendChild(f)}}
+function applySeason(k){const s=SE[k];season=k;try{localStorage.setItem("seas",k)}catch(e){}
+document.body.dataset.s=k;$("home").dataset.s=k;for(let i=0;i<SN;i++)respawn(i,true);
+gm.color.set(s.gr);mm.color.set(s.mt);pm.color.set(s.lf);leafM.color.set(s.lf);cm.color.set(s.cp);const rd=k!=="qish",bc={bahor:["#ffb3d1","#ffffff"],yoz:["#e0312f","#ff9a2e"],kuz:["#f2b42e","#b3301f"]}[k]||["#ffb3d1","#ffffff"];CONI.forEach(o=>o.visible=!rd);ROUND.forEach(o=>o.visible=rd);FLW.forEach(o=>o.visible=k==="bahor");FTP.forEach(m=>m.visible=rd&&m.userData.on);blM.color.set(bc[0]);bl2M.color.set(bc[1]);blM.visible=bl2M.visible=k!=="yoz";fr1M.visible=fr2M.visible=k==="yoz";if(SNM)SNM.color.set(s.mnd);if(ROOF)ROOF.color.set(s.roof);if(PONDM)PONDM.color.set(s.pond);
+WIN.forEach(o=>o.visible=k==="qish");sc.fog.color.set(s.fog);snow.material.color.set(s.pc);snow.material.size=s.ps;snow.geometry.setDrawRange(0,s.pn);PV=s.pv;
+document.body.style.background=s.body;mkFlakes();
+document.querySelectorAll(".sb2 button").forEach(b=>b.classList.toggle("on",b.dataset.k===k))}
+Object.keys(SE).forEach(k=>{const b=document.createElement("button");b.dataset.k=k;b.innerHTML=`<span>${SE[k].e}</span>${i18("s_"+k)}`;b.onclick=()=>applySeason(k);$("sbs").appendChild(b)});
+[["uz","O‘zbekcha"],["ru","Русский"],["en","English"],["de","Deutsch"],["ko","한국어"],["tr","Türkçe"]].forEach(([c,n])=>{const b=document.createElement("button");b.dataset.l=c;b.textContent=n;b.onclick=()=>setLang(c);$("lgs").appendChild(b)});
+$("gr").onclick=()=>$("st").classList.add("show");$("stc").onclick=()=>$("st").classList.remove("show");
+
+/* ---------- animatsiya sikli ---------- */
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+(function loop(){requestAnimationFrame(loop);const now=performance.now();
+gs.forEach((g,i)=>{const u=g.userData;if(u.fly)return;
+if(u.sp!=null){const k=(now-u.sp)/700;if(k<1&&!reduce)g.rotation.y=k*Math.PI*2;else{g.rotation.y=0;u.sp=null}}
+if(u.in!=null){const k=(now-u.in)/550;if(k<1){g.position.y=k<0?9:9*(1-k)*(1-k);return}u.in=null;g.position.y=0}
+if(u.jt!=null){const k=(now-u.jt)/650;if(k>=0&&k<2){g.position.y=Math.abs(Math.sin(k*Math.PI))*.9;return}if(k>=2)u.jt=null}
+g.position.y+=((i===sel?.55:0)-g.position.y)*.2;g.scale.y=1+Math.sin(now/350+i)*.012});
+if(sel>=0&&gs[sel]){ring.visible=true;ring.position.x=gs[sel].position.x;ring.position.z=gs[sel].position.z;ring.rotation.z=now/600}else ring.visible=false;
+const p=snow.geometry.attributes.position;for(let i=0;i<SN;i++){p.array[i*3+1]-=PV;p.array[i*3]+=.004+(season==="kuz"||season==="bahor"?Math.sin(now/700+i)*.006:0);if(p.array[i*3+1]<0)respawn(i,false)}p.needsUpdate=true;
+R.render(sc,cam)})();
+let sv=null;try{sv=localStorage.getItem("seas")}catch(e){}applySeason(SE[sv]?sv:"qish");applyLang();theme();start();
+</script>
+</body>
+</html>
